@@ -1,0 +1,17 @@
+DIGEST 4884effe558442aaae07e83980e83a6a
+Fmain
+R15:17 Ast <> <> lib
+R19:26 unscoped <> <> lib
+R28:31 core <> <> lib
+R59:62 smpl.Smpl <> <> lib
+R80:84 Utils <> <> lib
+def 100:102 <> ctx
+R107:110 Coq.Init.Datatypes <> list ind
+R112:113 Ast Core ty ind
+R138:140 Coq.Init.Datatypes <> nil constr
+R142:143 Ast Core ty ind
+not 126:126 <> :::'ε'
+R173:176 Coq.Init.Datatypes <> cons constr
+R178:179 Ast Core ty ind
+not 156:156 <> :::x_',,'_x
+R227:243 unscoped UnscopedNotations <> mod

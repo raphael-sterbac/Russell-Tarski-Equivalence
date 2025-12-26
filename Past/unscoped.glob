@@ -1,0 +1,602 @@
+DIGEST 1ffb3ef9b9ce067e735dfc6b22b746bb
+Funscoped
+R370:373 core <> <> lib
+R391:396 Coq.Setoids.Setoid <> <> lib
+R398:406 Coq.Classes.Morphisms <> <> lib
+R408:427 Coq.Relations.Relation_Definitions <> <> lib
+def 442:443 <> ap
+binder 446:446 <> X:1
+binder 448:448 <> Y:2
+R457:460 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R456:456 unscoped <> X:1 var
+R461:461 unscoped <> Y:2 var
+binder 452:452 <> f:3
+R471:471 unscoped <> X:1 var
+binder 465:465 <> x:4
+binder 467:467 <> y:5
+R480:482 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R479:479 unscoped <> x:4 var
+R483:483 unscoped <> y:5 var
+binder 475:475 <> p:6
+R491:493 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R488:488 unscoped <> f:3 var
+R490:490 unscoped <> x:4 var
+R494:494 unscoped <> f:3 var
+R496:496 unscoped <> y:5 var
+R509:509 unscoped <> p:6 var
+R516:522 Coq.Init.Logic <> eq_refl constr
+R527:533 Coq.Init.Logic <> eq_refl constr
+def 552:554 <> apc
+binder 557:557 <> X:8
+binder 559:559 <> Y:9
+R570:573 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R569:569 unscoped <> X:8 var
+R574:574 unscoped <> Y:9 var
+binder 563:563 <> f:10
+binder 565:565 <> g:11
+R584:584 unscoped <> X:8 var
+binder 578:578 <> x:12
+binder 580:580 <> y:13
+R593:595 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R592:592 unscoped <> f:10 var
+R596:596 unscoped <> g:11 var
+binder 588:588 <> p:14
+R605:607 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R604:604 unscoped <> x:12 var
+R608:608 unscoped <> y:13 var
+binder 600:600 <> q:15
+R616:618 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R613:613 unscoped <> f:10 var
+R615:615 unscoped <> x:12 var
+R619:619 unscoped <> g:11 var
+R621:621 unscoped <> y:13 var
+R634:634 unscoped <> q:15 var
+R641:647 Coq.Init.Logic <> eq_refl constr
+R658:658 unscoped <> p:14 var
+R665:671 Coq.Init.Logic <> eq_refl constr
+R676:682 Coq.Init.Logic <> eq_refl constr
+def 750:754 <> shift
+R760:760 Coq.Init.Datatypes <> S constr
+def 775:782 <> var_zero
+def 802:803 <> id
+binder 806:806 <> X:18
+R813:824 Coq.Init.Datatypes <> id def
+R826:826 unscoped <> X:18 var
+def 841:845 <> scons
+binder 848:848 <> X:19
+R862:862 unscoped <> X:19 var
+binder 858:858 <> x:20
+R874:877 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R871:873 Coq.Init.Datatypes <> nat ind
+R878:878 unscoped <> X:19 var
+binder 866:867 <> xi:21
+binder 890:890 <> n:22
+R901:901 unscoped <> n:22 var
+R923:923 unscoped <> x:20 var
+R935:935 Coq.Init.Datatypes <> S constr
+R942:943 unscoped <> xi:21 var
+R945:945 unscoped <> n:22 var
+R985:989 unscoped <> scons def
+ind 1126:1129 <> Ren1
+constr 1162:1165 <> ren1
+rec 1126:1129 <> Ren1
+proj 1162:1165 <> ren1
+binder 1132:1133 <> X1:24
+binder 1145:1145 <> Y:25
+binder 1147:1147 <> Z:26
+R1171:1174 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1169:1170 unscoped <> X1:24 var
+R1176:1179 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1175:1175 unscoped <> Y:25 var
+R1180:1180 unscoped <> Z:26 var
+ind 1191:1194 <> Ren2
+constr 1229:1232 <> ren2
+rec 1191:1194 <> Ren2
+proj 1229:1232 <> ren2
+binder 1197:1198 <> X1:29
+binder 1200:1201 <> X2:30
+binder 1212:1212 <> Y:31
+binder 1214:1214 <> Z:32
+R1238:1241 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1236:1237 unscoped <> X1:29 var
+R1244:1247 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1242:1243 unscoped <> X2:30 var
+R1249:1252 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1248:1248 unscoped <> Y:31 var
+R1253:1253 unscoped <> Z:32 var
+ind 1263:1266 <> Ren3
+constr 1304:1307 <> ren3
+rec 1263:1266 <> Ren3
+proj 1304:1307 <> ren3
+binder 1269:1270 <> X1:35
+binder 1272:1273 <> X2:36
+binder 1275:1276 <> X3:37
+binder 1287:1287 <> Y:38
+binder 1289:1289 <> Z:39
+R1313:1316 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1311:1312 unscoped <> X1:35 var
+R1319:1322 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1317:1318 unscoped <> X2:36 var
+R1325:1328 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1323:1324 unscoped <> X3:37 var
+R1330:1333 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1329:1329 unscoped <> Y:38 var
+R1334:1334 unscoped <> Z:39 var
+ind 1344:1347 <> Ren4
+constr 1388:1391 <> ren4
+rec 1344:1347 <> Ren4
+proj 1388:1391 <> ren4
+binder 1350:1351 <> X1:42
+binder 1353:1354 <> X2:43
+binder 1356:1357 <> X3:44
+binder 1359:1360 <> X4:45
+binder 1371:1371 <> Y:46
+binder 1373:1373 <> Z:47
+R1397:1400 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1395:1396 unscoped <> X1:42 var
+R1403:1406 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1401:1402 unscoped <> X2:43 var
+R1409:1412 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1407:1408 unscoped <> X3:44 var
+R1415:1418 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1413:1414 unscoped <> X4:45 var
+R1420:1423 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1419:1419 unscoped <> Y:46 var
+R1424:1424 unscoped <> Z:47 var
+ind 1434:1437 <> Ren5
+constr 1481:1484 <> ren5
+rec 1434:1437 <> Ren5
+proj 1481:1484 <> ren5
+binder 1440:1441 <> X1:50
+binder 1443:1444 <> X2:51
+binder 1446:1447 <> X3:52
+binder 1449:1450 <> X4:53
+binder 1452:1453 <> X5:54
+binder 1464:1464 <> Y:55
+binder 1466:1466 <> Z:56
+R1490:1493 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1488:1489 unscoped <> X1:50 var
+R1496:1499 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1494:1495 unscoped <> X2:51 var
+R1502:1505 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1500:1501 unscoped <> X3:52 var
+R1508:1511 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1506:1507 unscoped <> X4:53 var
+R1514:1517 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1512:1513 unscoped <> X5:54 var
+R1519:1522 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1518:1518 unscoped <> Y:55 var
+R1523:1523 unscoped <> Z:56 var
+mod 1534:1545 <> RenNotations
+R1579:1582 unscoped <> ren1 def
+not 1559:1559 RenNotations ::subst_scope:x_'⟨'_x_'⟩'
+R1702:1705 unscoped <> ren2 def
+not 1676:1676 RenNotations ::subst_scope:x_'⟨'_x_';'_x_'⟩'
+R1841:1844 unscoped <> ren3 def
+not 1809:1809 RenNotations ::subst_scope:x_'⟨'_x_';'_x_';'_x_'⟩'
+R1996:1999 unscoped <> ren4 def
+not 1958:1958 RenNotations ::subst_scope:x_'⟨'_x_';'_x_';'_x_';'_x_'⟩'
+R2168:2171 unscoped <> ren5 def
+not 2124:2124 RenNotations ::subst_scope:x_'⟨'_x_';'_x_';'_x_';'_x_';'_x_'⟩'
+R2323:2326 unscoped <> ren1 def
+not 2306:2306 RenNotations ::fscope:'⟨'_x_'⟩'
+R2432:2435 unscoped <> ren2 def
+not 2408:2408 RenNotations ::fscope:'⟨'_x_';'_x_'⟩'
+R2521:2532 unscoped RenNotations <> mod
+ind 2583:2588 <> Subst1
+constr 2619:2624 <> subst1
+rec 2583:2588 <> Subst1
+proj 2619:2624 <> subst1
+binder 2591:2592 <> X1:59
+binder 2603:2603 <> Y:60
+binder 2605:2605 <> Z:61
+R2630:2633 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2628:2629 unscoped <> X1:59 var
+R2635:2638 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2634:2634 unscoped <> Y:60 var
+R2639:2639 unscoped <> Z:61 var
+ind 2649:2654 <> Subst2
+constr 2688:2693 <> subst2
+rec 2649:2654 <> Subst2
+proj 2688:2693 <> subst2
+binder 2657:2658 <> X1:64
+binder 2660:2661 <> X2:65
+binder 2672:2672 <> Y:66
+binder 2674:2674 <> Z:67
+R2699:2702 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2697:2698 unscoped <> X1:64 var
+R2705:2708 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2703:2704 unscoped <> X2:65 var
+R2710:2714 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2709:2709 unscoped <> Y:66 var
+R2715:2715 unscoped <> Z:67 var
+ind 2725:2730 <> Subst3
+constr 2767:2772 <> subst3
+rec 2725:2730 <> Subst3
+proj 2767:2772 <> subst3
+binder 2733:2734 <> X1:70
+binder 2736:2737 <> X2:71
+binder 2739:2740 <> X3:72
+binder 2751:2751 <> Y:73
+binder 2753:2753 <> Z:74
+R2778:2781 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2776:2777 unscoped <> X1:70 var
+R2784:2787 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2782:2783 unscoped <> X2:71 var
+R2790:2794 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2788:2789 unscoped <> X3:72 var
+R2796:2800 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2795:2795 unscoped <> Y:73 var
+R2801:2801 unscoped <> Z:74 var
+ind 2811:2816 <> Subst4
+constr 2855:2860 <> subst4
+rec 2811:2816 <> Subst4
+proj 2855:2860 <> subst4
+binder 2819:2820 <> X1:77
+binder 2822:2823 <> X2:78
+binder 2825:2826 <> X3:79
+binder 2828:2829 <> X4:80
+binder 2839:2839 <> Y:81
+binder 2841:2841 <> Z:82
+R2866:2869 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2864:2865 unscoped <> X1:77 var
+R2872:2875 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2870:2871 unscoped <> X2:78 var
+R2878:2881 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2876:2877 unscoped <> X3:79 var
+R2884:2887 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2882:2883 unscoped <> X4:80 var
+R2889:2893 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2888:2888 unscoped <> Y:81 var
+R2894:2894 unscoped <> Z:82 var
+ind 2904:2909 <> Subst5
+constr 2952:2957 <> subst5
+rec 2904:2909 <> Subst5
+proj 2952:2957 <> subst5
+binder 2912:2913 <> X1:85
+binder 2915:2916 <> X2:86
+binder 2918:2919 <> X3:87
+binder 2921:2922 <> X4:88
+binder 2924:2925 <> X5:89
+binder 2936:2936 <> Y:90
+binder 2938:2938 <> Z:91
+R2963:2966 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2961:2962 unscoped <> X1:85 var
+R2969:2972 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2967:2968 unscoped <> X2:86 var
+R2975:2978 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2973:2974 unscoped <> X3:87 var
+R2981:2984 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2979:2980 unscoped <> X4:88 var
+R2987:2991 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2985:2986 unscoped <> X5:89 var
+R2993:2997 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2992:2992 unscoped <> Y:90 var
+R2998:2998 unscoped <> Z:91 var
+mod 3009:3022 <> SubstNotations
+R3054:3059 unscoped <> subst1 def
+not 3036:3036 SubstNotations ::subst_scope:x_'['_x_']'
+R3180:3185 unscoped <> subst2 def
+not 3156:3156 SubstNotations ::subst_scope:x_'['_x_';'_x_']'
+R3289:3302 unscoped SubstNotations <> mod
+ind 3349:3351 <> Var
+constr 3362:3364 <> ids
+rec 3349:3351 <> Var
+proj 3362:3364 <> ids
+binder 3353:3353 <> X:94
+binder 3355:3355 <> Y:95
+R3369:3372 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3368:3368 unscoped <> X:94 var
+R3373:3373 unscoped <> Y:95 var
+inst 3396:3401 <> idsRen
+R3405:3407 unscoped <> Var class
+R3413:3415 Coq.Init.Datatypes <> nat ind
+R3409:3411 Coq.Init.Datatypes <> nat ind
+R3420:3421 unscoped <> id def
+R3486:3492 core <> funcomp def
+R3486:3492 core <> funcomp def
+R3486:3492 core <> funcomp def
+mod 3533:3548 <> CombineNotations
+R3575:3581 core <> funcomp def
+not 3562:3562 CombineNotations ::fscope:x_'>>'_x
+R3641:3645 unscoped <> scons def
+not 3624:3624 CombineNotations ::subst_scope:x_'.:'_x
+R3807:3822 unscoped CombineNotations <> mod
+R3833:3848 unscoped CombineNotations <> mod
+def 3904:3909 <> up_ren
+R3920:3923 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3917:3919 Coq.Init.Datatypes <> nat ind
+R3924:3926 Coq.Init.Datatypes <> nat ind
+binder 3912:3913 <> xi:98
+R3935:3939 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R3947:3947 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R3942:3945 unscoped CombineNotations ::fscope:x_'>>'_x not
+R3946:3946 Coq.Init.Datatypes <> S constr
+R3940:3941 unscoped <> xi:98 var
+prf 4016:4025 <> up_ren_ren
+R4035:4038 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4032:4034 Coq.Init.Datatypes <> nat ind
+R4039:4041 Coq.Init.Datatypes <> nat ind
+binder 4028:4029 <> xi:99
+R4055:4058 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4052:4054 Coq.Init.Datatypes <> nat ind
+R4059:4061 Coq.Init.Datatypes <> nat ind
+binder 4045:4048 <> zeta:100
+R4073:4076 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4070:4072 Coq.Init.Datatypes <> nat ind
+R4077:4079 Coq.Init.Datatypes <> nat ind
+binder 4065:4067 <> rho:101
+binder 4093:4093 <> x:102
+R4110:4112 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4096:4096 unscoped CombineNotations ::fscope:x_'>>'_x not
+R4099:4102 unscoped CombineNotations ::fscope:x_'>>'_x not
+R4107:4109 unscoped CombineNotations ::fscope:x_'>>'_x not
+R4103:4106 unscoped <> zeta:100 var
+R4097:4098 unscoped <> xi:99 var
+R4109:4109 unscoped <> x:102 var
+R4113:4115 unscoped <> rho:101 var
+R4117:4117 unscoped <> x:102 var
+binder 4083:4083 <> E:103
+binder 4131:4131 <> x:104
+R4162:4164 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4134:4134 unscoped CombineNotations ::fscope:x_'>>'_x not
+R4144:4147 unscoped CombineNotations ::fscope:x_'>>'_x not
+R4159:4161 unscoped CombineNotations ::fscope:x_'>>'_x not
+R4148:4153 unscoped <> up_ren def
+R4155:4158 unscoped <> zeta:100 var
+R4135:4140 unscoped <> up_ren def
+R4142:4143 unscoped <> xi:99 var
+R4161:4161 unscoped <> x:104 var
+R4165:4170 unscoped <> up_ren def
+R4172:4174 unscoped <> rho:101 var
+R4176:4176 unscoped <> x:104 var
+R4229:4234 unscoped <> up_ren def
+R4249:4255 core <> funcomp def
+prf 4305:4314 <> scons_eta'
+binder 4317:4317 <> T:105
+R4328:4331 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4325:4327 Coq.Init.Datatypes <> nat ind
+R4332:4332 unscoped <> T:105 var
+binder 4321:4321 <> f:106
+R4339:4356 Coq.Classes.Morphisms <> pointwise_relation def
+R4397:4397 unscoped <> f:106 var
+R4374:4378 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4394:4394 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4364:4364 unscoped <> f:106 var
+R4366:4373 unscoped <> var_zero def
+R4379:4385 core <> funcomp def
+R4389:4393 unscoped <> shift def
+R4387:4387 unscoped <> f:106 var
+R4360:4361 Coq.Init.Logic <> eq ind
+prf 4454:4466 <> scons_eta_id'
+R4472:4489 Coq.Classes.Morphisms <> pointwise_relation def
+R4516:4517 unscoped <> id def
+R4505:4508 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4497:4504 unscoped <> var_zero def
+R4509:4513 unscoped <> shift def
+R4493:4494 Coq.Init.Logic <> eq ind
+prf 4574:4584 <> scons_comp'
+binder 4587:4587 <> T:107
+binder 4597:4597 <> U:108
+R4604:4604 unscoped <> T:107 var
+binder 4601:4601 <> s:109
+R4618:4621 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4615:4617 Coq.Init.Datatypes <> nat ind
+R4622:4622 unscoped <> T:107 var
+binder 4608:4612 <> sigma:110
+R4632:4635 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4631:4631 unscoped <> T:107 var
+R4636:4636 unscoped <> U:108 var
+binder 4626:4628 <> tau:111
+R4643:4660 Coq.Classes.Morphisms <> pointwise_relation def
+R4695:4695 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4701:4706 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4724:4724 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4696:4698 unscoped <> tau:111 var
+R4700:4700 unscoped <> s:109 var
+R4707:4713 core <> funcomp def
+R4719:4723 unscoped <> sigma:110 var
+R4715:4717 unscoped <> tau:111 var
+R4668:4674 core <> funcomp def
+R4682:4685 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R4681:4681 unscoped <> s:109 var
+R4686:4690 unscoped <> sigma:110 var
+R4676:4678 unscoped <> tau:111 var
+R4664:4665 Coq.Init.Logic <> eq ind
+inst 4882:4895 <> scons_morphism
+binder 4898:4898 <> X:112
+R4911:4916 Coq.Classes.Morphisms <> Proper class
+R4981:4985 unscoped <> scons def
+R4987:4987 unscoped <> X:112 var
+R4921:4925 Coq.Classes.Morphisms ProperNotations ::signature_scope:x_'==>'_x not
+R4919:4920 Coq.Init.Logic <> eq ind
+R4949:4953 Coq.Classes.Morphisms ProperNotations ::signature_scope:x_'==>'_x not
+R4926:4943 Coq.Classes.Morphisms <> pointwise_relation def
+R4947:4948 Coq.Init.Logic <> eq ind
+R4954:4971 Coq.Classes.Morphisms <> pointwise_relation def
+R4975:4976 Coq.Init.Logic <> eq ind
+inst 5098:5112 <> scons_morphism2
+binder 5115:5115 <> X:113
+R5128:5133 Coq.Classes.Morphisms <> Proper class
+R5184:5188 unscoped <> scons def
+R5190:5190 unscoped <> X:113 var
+R5138:5142 Coq.Classes.Morphisms ProperNotations ::signature_scope:x_'==>'_x not
+R5136:5137 Coq.Init.Logic <> eq ind
+R5166:5170 Coq.Classes.Morphisms ProperNotations ::signature_scope:x_'==>'_x not
+R5143:5160 Coq.Classes.Morphisms <> pointwise_relation def
+R5164:5165 Coq.Init.Logic <> eq ind
+R5173:5177 Coq.Classes.Morphisms ProperNotations ::signature_scope:x_'==>'_x not
+R5171:5172 Coq.Init.Logic <> eq ind
+R5178:5179 Coq.Init.Logic <> eq ind
+def 5355:5362 <> up_allfv
+R5371:5374 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5368:5370 Coq.Init.Datatypes <> nat ind
+binder 5365:5365 <> p:114
+R5386:5389 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5383:5385 Coq.Init.Datatypes <> nat ind
+R5398:5402 unscoped <> scons def
+R5409:5409 unscoped <> p:114 var
+R5404:5407 Coq.Init.Logic <> True ind
+mod 5460:5476 <> UnscopedNotations
+R5489:5500 unscoped RenNotations <> modtype
+R5513:5526 unscoped SubstNotations <> modtype
+R5539:5554 unscoped CombineNotations <> modtype
+R5704:5708 unscoped <> scons def
+R5712:5714 unscoped <> ids def
+not 5691:5691 UnscopedNotations ::subst_scope:x_'..'
+R5782:5786 unscoped <> shift def
+not 5772:5772 UnscopedNotations ::subst_scope:'↑'
+R5880:5896 unscoped UnscopedNotations <> mod
+R6182:6184 Coq.Init.Datatypes <> nat ind
+binder 6178:6178 <> i:115
+R6182:6184 Coq.Init.Datatypes <> nat ind
+binder 6178:6178 <> i:116
+R6396:6399 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6394:6395 unscoped <> id def
+R6396:6399 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6394:6395 unscoped <> id def
+R6477:6480 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6481:6482 unscoped <> id def
+R6477:6480 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6481:6482 unscoped <> id def
+R6557:6558 unscoped <> id def
+R6557:6558 unscoped <> id def
+R6612:6612 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6621:6625 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6615:6618 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6612:6612 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6621:6625 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6615:6618 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6701:6701 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6704:6707 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6710:6719 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6712:6719 unscoped <> var_zero def
+R6701:6701 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6704:6707 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6710:6719 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6712:6719 unscoped <> var_zero def
+R6783:6783 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6786:6789 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6792:6794 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6783:6783 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6786:6789 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6792:6794 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6851:6851 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6854:6857 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6860:6867 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6863:6863 Coq.Init.Datatypes <> S constr
+R6851:6851 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6854:6857 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6860:6867 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6863:6863 Coq.Init.Datatypes <> S constr
+R6934:6938 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6947:6947 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6941:6944 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6934:6938 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6947:6947 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6941:6944 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7040:7047 unscoped <> var_zero def
+R7040:7047 unscoped <> var_zero def
+R7104:7108 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7125:7125 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7109:7115 core <> funcomp def
+R7120:7124 unscoped <> shift def
+R7104:7108 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7125:7125 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7109:7115 core <> funcomp def
+R7120:7124 unscoped <> shift def
+R7282:7285 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7274:7281 unscoped <> var_zero def
+R7282:7285 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R7274:7281 unscoped <> var_zero def
+R7404:7407 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7404:7407 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7484:7486 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7484:7486 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7679:7685 core <> funcomp def
+R7690:7694 unscoped <> scons def
+R7679:7685 core <> funcomp def
+R7690:7694 unscoped <> scons def
+R7768:7772 unscoped <> scons def
+R7783:7787 unscoped <> shift def
+R7774:7781 unscoped <> var_zero def
+R7768:7772 unscoped <> scons def
+R7783:7787 unscoped <> shift def
+R7774:7781 unscoped <> var_zero def
+R7809:7821 unscoped <> scons_eta_id' thm
+R7721:7731 unscoped <> scons_comp' thm
+R7516:7516 unscoped CombineNotations ::fscope:x_'>>'_x not
+R7518:7521 unscoped CombineNotations ::fscope:x_'>>'_x not
+R7523:7525 unscoped CombineNotations ::fscope:x_'>>'_x not
+R7446:7446 unscoped CombineNotations ::fscope:x_'>>'_x not
+R7448:7451 unscoped CombineNotations ::fscope:x_'>>'_x not
+R7453:7455 unscoped CombineNotations ::fscope:x_'>>'_x not
+R7302:7306 unscoped <> scons def
+R7311:7318 unscoped <> var_zero def
+R7302:7306 unscoped <> scons def
+R7311:7318 unscoped <> var_zero def
+R7330:7334 unscoped <> scons def
+R7350:7356 core <> funcomp def
+R7360:7364 unscoped <> shift def
+R7339:7346 unscoped <> var_zero def
+R7377:7386 unscoped <> scons_eta' thm
+R7140:7144 unscoped <> scons def
+R7150:7156 core <> funcomp def
+R7160:7164 unscoped <> shift def
+R7140:7144 unscoped <> scons def
+R7150:7156 core <> funcomp def
+R7160:7164 unscoped <> shift def
+R7174:7178 unscoped <> scons def
+R7194:7200 core <> funcomp def
+R7204:7208 unscoped <> shift def
+R7183:7190 unscoped <> var_zero def
+R7230:7239 unscoped <> scons_eta' thm
+R7062:7069 unscoped <> var_zero def
+R7062:7069 unscoped <> var_zero def
+R6963:6967 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6974:6974 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6969:6972 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6963:6967 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6974:6974 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6969:6972 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6882:6882 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6884:6887 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6889:6895 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6892:6892 Coq.Init.Datatypes <> S constr
+R6882:6882 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6884:6887 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6889:6895 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6892:6892 Coq.Init.Datatypes <> S constr
+R6809:6809 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6811:6814 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6816:6818 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6809:6809 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6811:6814 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6816:6818 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6734:6734 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6736:6739 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6741:6750 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6743:6750 unscoped <> var_zero def
+R6734:6734 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6736:6739 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6741:6750 unscoped CombineNotations ::subst_scope:x_'.:'_x not
+R6743:6750 unscoped <> var_zero def
+R6642:6642 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6649:6653 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6644:6647 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6642:6642 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6649:6653 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6644:6647 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6664:6668 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6675:6675 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6670:6673 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6576:6577 unscoped <> id def
+R6576:6577 unscoped <> id def
+R6498:6501 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6502:6503 unscoped <> id def
+R6498:6501 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6502:6503 unscoped <> id def
+R6418:6421 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6416:6417 unscoped <> id def
+R6418:6421 unscoped CombineNotations ::fscope:x_'>>'_x not
+R6416:6417 unscoped <> id def

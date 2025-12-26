@@ -1,0 +1,69 @@
+DIGEST 4d12f11581e75be5a0b9ebe26c4114ad
+FExtra
+R223:226 smpl.Smpl <> <> lib
+R253:259 Coq.ssr.ssrbool <> <> lib
+R261:264 Coq.Lists.List <> <> lib
+R297:305 Equations.Prop.Equations <> <> lib
+R323:326 core <> <> lib
+R328:335 unscoped <> <> lib
+R337:339 Ast <> <> lib
+R357:361 Utils <> <> lib
+R509:515 core <> funcomp def
+R509:515 core <> funcomp def
+R509:515 core <> funcomp def
+R583:589 core <> funcomp def
+not 570:570 <> ::function_scope:x_'>>'_x
+R655:659 unscoped <> scons def
+not 638:638 <> ::asubst_scope:x_'.:'_x
+R772:775 unscoped <> ren1 def
+not 752:752 <> ::asubst_scope:x_'⟨'_x_'⟩'
+R998:1003 unscoped <> subst1 def
+not 980:980 <> ::asubst_scope:x_'['_x_']'
+R1116:1125 Ast Core subst_term def
+R1128:1132 unscoped <> scons def
+R1142:1145 Extra <> ::function_scope:x_'>>'_x not
+R1146:1153 Ast Core var_term constr
+R1137:1141 unscoped <> shift def
+not 1099:1099 <> ::asubst_scope:x_'['_x_']⇑'
+R1257:1261 unscoped <> scons def
+R1265:1267 unscoped <> ids def
+not 1244:1244 <> ::asubst_scope:x_'..'
+R1334:1338 unscoped <> shift def
+not 1324:1324 <> ::asubst_scope:'↑'
+R1424:1426 Ast Core App constr
+R1429:1431 Extra <> ::asubst_scope:x_'⟨'_x_'⟩' not
+R1435:1437 Extra <> ::asubst_scope:x_'⟨'_x_'⟩' not
+R1432:1434 Extra <> ::asubst_scope:'↑' not
+R1440:1447 Ast Core var_term constr
+not 1403:1403 <> :::'eta_expand'_x
+inst 1502:1511 <> Ren1_subst
+binder 1514:1514 <> Y:1
+binder 1516:1516 <> Z:2
+R1528:1531 unscoped <> Ren1 class
+R1537:1540 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1534:1536 Coq.Init.Datatypes <> nat ind
+R1541:1543 Coq.Init.Datatypes <> nat ind
+R1546:1546 Extra <> Y:1 var
+R1548:1548 Extra <> Z:2 var
+binder 1528:1548 <> H:3
+R1556:1559 unscoped <> Ren1 class
+R1589:1592 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1586:1588 Coq.Init.Datatypes <> nat ind
+R1593:1593 Extra <> Z:2 var
+R1578:1581 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1575:1577 Coq.Init.Datatypes <> nat ind
+R1582:1582 Extra <> Y:1 var
+R1565:1568 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1562:1564 Coq.Init.Datatypes <> nat ind
+R1569:1571 Coq.Init.Datatypes <> nat ind
+binder 1606:1607 <> ρ:4
+binder 1609:1610 <> σ:5
+binder 1612:1612 <> i:6
+R1617:1617 Extra <> ::asubst_scope:x_'⟨'_x_'⟩' not
+R1622:1625 Extra <> ::asubst_scope:x_'⟨'_x_'⟩' not
+R1628:1630 Extra <> ::asubst_scope:x_'⟨'_x_'⟩' not
+R1626:1627 Extra <> ρ:4 var
+R1618:1619 Extra <> σ:5 var
+R1621:1621 Extra <> i:6 var
+R1666:1673 Ast Core ren_term def
+R1686:1695 Ast Core subst_term def
