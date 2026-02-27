@@ -235,7 +235,7 @@ with Russ_WfTypeDecl  : russ_ctx -> russ_term -> Type :=
         [ Γ |-r a : r_U n]
         -> [ Γ |-r a ] 
 (** **** Typing *)
-with russ_termpingDecl : russ_ctx -> russ_term -> russ_term -> Type :=
+with Russ_TypingDecl : russ_ctx -> russ_term -> russ_term -> Type :=
     | r_wfVar0 {Γ} {A} :
         [ Γ |-r A ] ->
         [ Γ,,r A |-r r_var_term 0 : (r_weak_term A) ]
@@ -336,7 +336,7 @@ with Russ_ConvTermDecl : russ_ctx -> russ_term -> russ_term -> russ_term -> Type
         [ Γ |-r A = B : r_U n]
     
 where "[ Γ |-r T ]" := (Russ_WfTypeDecl Γ T)
-and   "[ Γ |-r t : T ]" := (russ_termpingDecl Γ t T)
+and   "[ Γ |-r t : T ]" := (Russ_TypingDecl Γ t T)
 and   "[ Γ |-r A = B ]" := (Russ_ConvTypeDecl Γ A B)
 and   "[ Γ |-r t = t' : T ]" := (Russ_ConvTermDecl Γ t t' T)
 and   "[ |-r Γ ]" := (Russ_WfContextDecl Γ).
@@ -2450,7 +2450,7 @@ Proof.
         constructor. auto. simpl. rewrite e0. rewrite e. auto.
 
       (* Cas r_VarN *)
-    +  destruct IHruss_termpingDecl as [? [? [? [? [? []]]]]]. apply section_ty in r. destruct r as [? [? [? []]]]. eexists (projT3,,projT7).
+    +  destruct IHRuss_TypingDecl as [? [? [? [? [? []]]]]]. apply section_ty in r. destruct r as [? [? [? []]]]. eexists (projT3,,projT7).
         eexists (weak_term projT4). eexists (weak_ty projT5).
         constructor. eapply weak_term_lemma. auto.
         constructor. rewrite <- defeq_erase_weak_ty. rewrite e. auto.
@@ -2458,7 +2458,7 @@ Proof.
         exact defeq_weak_var. simpl. rewrite e1. rewrite e2. auto. 
 
     + (* Cas r_Lambda *)
-      destruct IHruss_termpingDecl as [Γ_body [u_body [B_lifted [H_typing_body [H_erase_B [H_erase_u H_erase_ctx_body]]]]]].
+      destruct IHRuss_TypingDecl as [Γ_body [u_body [B_lifted [H_typing_body [H_erase_B [H_erase_u H_erase_ctx_body]]]]]].
       
       apply section_ty in r. destruct r as [Γ_A [A_lifted [H_wf_A [H_erase_A H_erase_ctx_A]]]].
       
@@ -2490,8 +2490,8 @@ Proof.
         exact H_erase_ctx_A.
 
     (* Cas r_App *)
-    + destruct IHruss_termpingDecl1 as [Γ_f [f_t [Prod_t [Hf_typ [H_er_Prod [H_er_f H_er_ctx_f]]]]]].
-      destruct IHruss_termpingDecl2 as [Γ_a [a_t [A_t [Ha_typ [H_er_A [H_er_a H_er_ctx_a]]]]]].
+    + destruct IHRuss_TypingDecl1 as [Γ_f [f_t [Prod_t [Hf_typ [H_er_Prod [H_er_f H_er_ctx_f]]]]]].
+      destruct IHRuss_TypingDecl2 as [Γ_a [a_t [A_t [Ha_typ [H_er_A [H_er_a H_er_ctx_a]]]]]].
 
       assert (H_Bt_exists : ∑ B_t, [Γ_f ,, A_t |- B_t] × erase_ty B_t = B).
       {   assert (Hf_typbis := Hf_typ).
@@ -2556,7 +2556,7 @@ Proof.
       -- exact H_er_ctx_f.
 
     + 
-      destruct IHruss_termpingDecl as [Γ1 [u1 [A1 [Htyp [HerA [HerU HerCtx]]]]]].
+      destruct IHRuss_TypingDecl as [Γ1 [u1 [A1 [Htyp [HerA [HerU HerCtx]]]]]].
       apply section_conv in r. destruct r as [? [A2 [B1 [? [? []]]]]].
       eexists Γ1, u1, B1.
       split.
@@ -2573,8 +2573,8 @@ Proof.
       * split. auto. split. auto. auto.
 
     (* Cas r_wfTermProd *)
-    + destruct IHruss_termpingDecl1 as [Γ1 [a1 [TA1 [Ha1 [HeTA1 [Hea1 HeG1]]]]]].
-      destruct IHruss_termpingDecl2 as [Γ2 [b1 [TB1 [Hb1 [HeTB1 [Heb1 HeG2]]]]]].
+    + destruct IHRuss_TypingDecl1 as [Γ1 [a1 [TA1 [Ha1 [HeTA1 [Hea1 HeG1]]]]]].
+      destruct IHRuss_TypingDecl2 as [Γ2 [b1 [TB1 [Hb1 [HeTB1 [Heb1 HeG2]]]]]].
       eexists Γ1, (cProd n a1 b1), (U n).
       repeat split.
       * assert (HeqTA1 : [Γ1 |- TA1 = U n]). 
@@ -2601,7 +2601,7 @@ Proof.
       * auto.
 
     (* Cas r_wfTermCumul *)
-+ destruct IHruss_termpingDecl as [Γ1 [u1 [A1 [Htyp [HerA [HerU HerCtx]]]]]].
++ destruct IHRuss_TypingDecl as [Γ1 [u1 [A1 [Htyp [HerA [HerU HerCtx]]]]]].
       eexists Γ1, (cLift n m u1), (U m).
       repeat split.
       -- apply wfTermcLift; auto.
