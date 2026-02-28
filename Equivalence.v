@@ -126,13 +126,13 @@ Proof.
     induction t; intros A A1 n0 Hvar Ht Hinj Herase;
     try (simpl in Herase; discriminate).
     
-    - (* Cas t = var_term *)
+    - (* t = var_term *)
       simpl in Herase. injection Herase. intro Heq. subst.
       apply inl. split.
       + apply TermRefl. exact Hvar.
       + eapply var_ctx_inv; eauto.
       
-    - (* Cas t = cLift k_t l_t t *)
+    - (* t = cLift k_t l_t t *)
       simpl in Herase. rename l into k_t. rename l0 into l_t.
       
       pose proof Ht as Ht_orig.
@@ -242,7 +242,7 @@ Proof.
     induction t; intros A B f a A0 A1 H_App H_t Hinj_A Hinj_B H_f H_a Herase;
     try (simpl in Herase; discriminate).
     
-    - (* Cas t = App t1 t2 t3 t4 *)
+    - (* t = App t1 t2 t3 t4 *)
       simpl in Herase. injection Herase. intros Heq_a Heq_f Heq_B Heq_A.
       
       pose proof H_App as Happ_orig.
@@ -316,7 +316,7 @@ Proof.
         ++ exact Htyp_f.
         ++ eapply wfTermConv. exact Htyp_f. exact Heq_Prod_U.
         
-    - (* Cas t = cLift k_t l_t t_inner *)
+    - (* t = cLift k_t l_t t_inner *)
       simpl in Herase. rename l into k_t. rename l0 into l_t.
       
       pose proof H_t as Ht_orig.
@@ -327,7 +327,7 @@ Proof.
       specialize (IHt A B f a A0 (U k_t) H_App H_t_Ukt Hinj_A Hinj_B H_f H_a Herase).
       
       destruct IHt as [[Heq_App_t H_A0_Ukt] | [l0' [l1' [k_in [v0 [v1 [H_A0_Ul0 [H_Ukt_Ul1 [H_App_lift [H_t_lift H_v0_v1]]]]]]]]]].
-      + (* Cas Left: IHt a renvoyé l'égalité stricte App = t_inner *)
+      + (* Left: IHt a renvoyé l'égalité stricte App = t_inner *)
         apply inr. eexists k_t, l_t, k_t, (App A B f a), t.
         repeat split; auto.
         * (* App = cLift k_t k_t App *)
@@ -339,7 +339,7 @@ Proof.
         * (* App = t_inner : U k_t *)
           eapply TermConv. exact Heq_App_t. exact H_A0_Ukt.
           
-      + (* Cas Right: App et t_inner sont déjà tous les deux des lifts profonds *)
+      + (* Right: App et t_inner sont déjà tous les deux des lifts profonds *)
         apply UInj in H_Ukt_Ul1. subst l1'.
         apply inr. eexists l0', l_t, k_in, v0, v1.
         repeat split; auto.
@@ -396,7 +396,7 @@ Proof.
   
   try (simpl in Herase; discriminate).
 
-  - (* Cas t = cProd l_t t1 t2 *)
+  - (* t = cProd l_t t1 t2 *)
     rename l into l_t.
     simpl in Herase. injection Herase. intros Heb Hea.
     
@@ -503,7 +503,7 @@ Proof.
 
         destruct (lt_eq_lt_dec ka kb) as [[H_ka_lt_kb | H_ka_eq_kb] | H_kb_lt_ka].
         
-        ++ (* Cas ka < kb *)
+        ++ (* ka < kb *)
            apply inr. eexists l_, l_t, kb.
            eexists (cProd kb (cLift ka kb va) vb), (cProd kb (cLift ka kb va') vb').
            
@@ -555,7 +555,7 @@ Proof.
               ** apply TermLiftingCong. exact H_va_eq. exact H_ka_lt_kb.
               ** eapply conv_hypothesis_term_eq. exact H_vb_eq. exact H_dec_kb.
 
-        ++ (* Cas ka = kb *)
+        ++ (* ka = kb *)
            subst kb. apply inr. eexists l_, l_t, ka.
            eexists (cProd ka va vb), (cProd ka va' vb').
 
@@ -596,7 +596,7 @@ Proof.
               apply TermPiCong. exact H_va_U. exact H_va_eq.
               eapply conv_hypothesis_term_eq. exact H_vb_eq. exact H_dec_ka.
 
-        ++ (* Cas kb < ka *)
+        ++ (* kb < ka *)
            apply inr. eexists l_, l_t, ka.
            eexists (cProd ka va (cLift kb ka vb)), (cProd ka va' (cLift kb ka vb')).
 
@@ -641,7 +641,7 @@ Proof.
               apply TermLiftingCong. eapply conv_hypothesis_term_eq. exact H_vb_eq. exact H_dec_ka.
               exact H_kb_lt_ka.
 
-  - (* Cas t = cLift k_t l_t t *)
+  - (* t = cLift k_t l_t t *)
     rename l into k_t. rename l0 into l_t.
     simpl in Herase.
     
@@ -906,7 +906,7 @@ Proof.
   all: try match goal with H : erase_context _ = erase_context _ |- _ => rename H into Heq end.
   all: try match goal with H : [ |- _ ] |- _ => rename H into HwfG' end.
 
-  (* --- Cas WfContextDecl --- *)
+  (* --- WfContextDecl --- *)
   - (* connil *) trivial.
   - (* concons *)
     destruct Γ' as [|A' Γ']; simpl in Heq; try discriminate.
@@ -914,7 +914,7 @@ Proof.
     inversion HwfG'.
     apply H with (1:=H3) (2:=HeqA).
 
-  (* --- Cas WfTypeDecl --- *)
+  (* --- WfTypeDecl --- *)
   - (* wfTypeU *) constructor; auto.
   - (* wfTypeProd *)
     apply wfTypeProd.
@@ -924,7 +924,7 @@ Proof.
       * simpl. rewrite Heq. reflexivity.
   - (* wfTypeDecode *) constructor. apply H; auto.
 
-  (* --- Cas TypingDecl --- *)
+  (* --- TypingDecl --- *)
   - (* wfVar0  *)
     destruct Γ' as [|A' Γ']; simpl in Heq; try discriminate.
     injection Heq; intros HeqA HeqG.
@@ -991,7 +991,7 @@ Proof.
       * simpl. rewrite Heq. reflexivity.
     + apply H1; auto.
 
-  (* --- Cas ConvTermDecl --- *)
+  (* --- ConvTermDecl --- *)
   - (* TermPiCong *)
     apply TermPiCong.
     + apply H; auto.
@@ -1096,14 +1096,14 @@ Lemma decode_prod_structure_from_erasure:
     erase_ty B1 = B.
 Proof.
   induction t; intros; simpl in H0; try discriminate.
-  (* Cas cProd *)
+  (* cProd *)
   - injection H0; intros; subst.
     apply code_prod_inv in H. destruct H as [? [? ?]]. subst.
     eexists (Decode l0 t1), (Decode l0 t2).
     split.
     + apply TypeDecodeProdConv; auto.
     + simpl. split; auto.
-  (* Cas cLift *)
+  (* cLift *)
   - apply lift_inv in H. destruct H as [? [? ?]]. subst.
     specialize (IHt _ _ _ _  t0 H0).
     destruct IHt as [A1 [B1 [Heq [HA HB]]]].
@@ -1155,13 +1155,13 @@ Proof.
 
 - intros. induction H.
 
-    (* Cas r_var0 *)
+    (* r_var0 *)
     + apply  section_ty in r. destruct r as [projT3 [projT4 [? []]]]. eexists (projT3,,projT4). eexists (var_term 0). eexists (weak_ty projT4).
         constructor. eapply wfVar0. auto.
         constructor. symmetry in e. rewrite e. rewrite defeq_erase_weak_ty. auto.
         constructor. auto. simpl. rewrite e0. rewrite e. auto.
 
-      (* Cas r_VarN *)
+      (* r_VarN *)
     +  destruct IHRuss_TypingDecl as [projT3 [projT4 [projT5 [? [? []]]]]]. apply section_ty in r. destruct r as [projT6 [projT7 [? []]]]. eexists (projT3,,projT7).
         eexists (weak_term projT4). eexists (weak_ty projT5).
         constructor. eapply weak_term_lemma. auto.
@@ -1169,7 +1169,7 @@ Proof.
         constructor. rewrite <- defeq_erase_weak_term. rewrite e0. auto. 
         exact defeq_weak_var. simpl. rewrite e1. rewrite e2. auto. 
 
-    + (* Cas r_Lambda *)
+    + (* r_Lambda *)
       destruct IHRuss_TypingDecl as [Γ_body [u_body [B_lifted [H_typing_body [H_erase_B [H_erase_u H_erase_ctx_body]]]]]].
       
       apply section_ty in r. destruct r as [Γ_A [A_lifted [H_wf_A [H_erase_A H_erase_ctx_A]]]].
@@ -1201,7 +1201,7 @@ Proof.
       ** 
         exact H_erase_ctx_A.
 
-    (* Cas r_App *)
+    (* r_App *)
     + destruct IHRuss_TypingDecl1 as [Γ_f [f_t [Prod_t [Hf_typ [H_er_Prod [H_er_f H_er_ctx_f]]]]]].
       destruct IHRuss_TypingDecl2 as [Γ_a [a_t [A_t [Ha_typ [H_er_A [H_er_a H_er_ctx_a]]]]]].
 
@@ -1209,7 +1209,7 @@ Proof.
       {   assert (Hf_typbis := Hf_typ).
           apply wftype_typing_inv in Hf_typ. destruct Hf_typ as [_ Hwf_Prod_t].
           destruct Prod_t.
-          - (* Cas Prod *)
+          - (* Prod *)
             simpl in H_er_Prod. injection H_er_Prod. intros HeqB HeqA.
             apply prod_ty_inv in Hwf_Prod_t. destruct Hwf_Prod_t as [_ Hwf_B0].
             exists Prod_t2. split.
@@ -1220,7 +1220,7 @@ Proof.
               apply inv_wfcontext_typing in Hf_typbis. destruct Hf_typbis. auto. rewrite H_er_ctx_f. auto. auto.
               simpl. rewrite H_er_ctx_f. rewrite H_er_A. rewrite HeqA. auto. auto.
             + auto.
-          - (* Cas Decode *)
+          - (* Decode *)
             simpl in H_er_Prod. apply decode_ty_inv in Hwf_Prod_t.
             apply decode_prod_structure_from_erasure with (A:=A) (B:=B) in Hwf_Prod_t; auto.
             destruct Hwf_Prod_t as [A1 [B1 [Heq_Decode [HeqA HeqB]]]].
@@ -1234,7 +1234,7 @@ Proof.
               apply inv_wfcontext_typing in Hf_typbis. destruct Hf_typbis. auto. rewrite H_er_ctx_f. auto. auto.
               simpl. rewrite H_er_ctx_f. rewrite H_er_A. rewrite HeqA. auto. auto.
             + auto.
-          - (* Cas U *)
+          - (* U *)
             simpl in H_er_Prod. discriminate.
       }
       destruct H_Bt_exists as [B_t [H_wf_B H_er_B]].
@@ -1284,7 +1284,7 @@ Proof.
                 eapply erase_inj_ctx_conv_ty. exact w1. apply inv_wfcontext_typing in Htyp. destruct Htyp. auto. rewrite e1. auto. auto.
       * split. auto. split. auto. auto.
 
-    (* Cas r_wfTermProd *)
+    (* r_wfTermProd *)
     + destruct IHRuss_TypingDecl1 as [Γ1 [a1 [TA1 [Ha1 [HeTA1 [Hea1 HeG1]]]]]].
       destruct IHRuss_TypingDecl2 as [Γ2 [b1 [TB1 [Hb1 [HeTB1 [Heb1 HeG2]]]]]].
       eexists Γ1, (cProd n a1 b1), (U n).
@@ -1305,14 +1305,14 @@ Proof.
       * simpl. rewrite Hea1. rewrite Heb1. reflexivity.
       * simpl. auto.
 
-    (* Cas r_wfTermUniv *)
+    (* r_wfTermUniv *)
     + apply section_ctx in r. destruct r as [Γ1 [HwfG HeG]].
       eexists Γ1, (cU n m), (U m).
       repeat split.
       * apply wfTermcUniv; auto.
       * auto.
 
-    (* Cas r_wfTermCumul *)
+    (* r_wfTermCumul *)
 + destruct IHRuss_TypingDecl as [Γ1 [u1 [A1 [Htyp [HerA [HerU HerCtx]]]]]].
       eexists Γ1, (cLift n m u1), (U m).
       repeat split.
@@ -1327,7 +1327,7 @@ Proof.
 - (* section_conv *)
   intros. induction H.
 
-  (* Cas r_TypePiCong *)
+  (* r_TypePiCong *)
   + destruct IHRuss_ConvTypeDecl1 as [Γ1 [A1 [B1 [HconvA [HeA [HeB HeG1]]]]]].
     destruct IHRuss_ConvTypeDecl2 as [Γ2 [C1 [D1 [HconvC [HeC [HeD HeG2]]]]]].
     
@@ -1354,13 +1354,13 @@ Proof.
     * simpl. rewrite HeB HeD. reflexivity.
     * exact HeG1.
 
-  (* Cas r_TypeRefl *)
+  (* r_TypeRefl *)
   + apply section_ty in r. destruct r as [Γ1 [A1 [Hwf [HeA HeG]]]].
     eexists Γ1, A1, A1.
     repeat split; try auto.
     apply TypeRefl. exact Hwf.
 
-  (* Cas r_TypeSym *)
+  (* r_TypeSym *)
   + destruct IHRuss_ConvTypeDecl as [Γ1 [A1 [B1 [Hconv [HeA [HeB HeG]]]]]].
     eexists Γ1, B1, A1.
     repeat split.
@@ -1369,7 +1369,7 @@ Proof.
     * exact HeA.
     * exact HeG.
 
-    (* Cas r_TypeTrans *)
+    (* r_TypeTrans *)
   + destruct IHRuss_ConvTypeDecl1 as [Γ1 [A1 [B1 [Hconv1 [HeA [HeB1 HeG1]]]]]].
     destruct IHRuss_ConvTypeDecl2 as [Γ2 [B2 [C1 [Hconv2 [HeB2 [HeC HeG2]]]]]].
     
@@ -1389,7 +1389,7 @@ Proof.
             instantiate (1:=Γ2 ). apply type_defeq_inv in Hconv2. destruct Hconv2 as [? []]. apply inv_wfcontext_wftype in w. destruct w. auto.
             apply type_defeq_inv in Hconv1. destruct Hconv1 as [? []]. apply inv_wfcontext_wftype in w. destruct w. auto. rewrite HeG2. auto. auto. 
 
-  (* Cas r_TypeUnivConv *)
+  (* r_TypeUnivConv *)
   + apply section_conv_term in r.
     destruct r as [Γ1 [u1 [v1 [T1 [Hconv [HeqT [Hequ [Heqv HeqG]]]]]]]].
     
@@ -1435,7 +1435,7 @@ Proof.
     * auto.
     
 
-    (* Cas r_TermAppCong *)
+    (* r_TermAppCong *)
     + apply section_conv in r. destruct r as [Γ1 [A1 [A'1 [HconvA [HeA [HeA' HeG1]]]]]].
     apply section_conv in r0. destruct r0 as [Γ2 [B1 [B'1 [HconvB [HeB [HeB' HeG2]]]]]].
     destruct IHRuss_ConvTermDecl1 as [Γ3 [f1 [g1 [Prod1 [Hconv_f [HeProd [Hef [Heg HeG3]]]]]]]].
@@ -1478,7 +1478,7 @@ Proof.
     * simpl. rewrite HeA' HeB' Heg Heb. reflexivity.
     * exact HeG1.
 
-    (* Cas r_TermLambdaCong *)
+    (* r_TermLambdaCong *)
     + apply section_conv in r0. destruct r0 as [Γ1 [A1 [A'1 [HconvA [HeA [HeA' HeG1]]]]]].
     apply section_conv in r1. destruct r1 as [Γ2 [B1 [B'1 [HconvB [HeB [HeB' HeG2]]]]]].
     destruct IHRuss_ConvTermDecl as [Γ3 [t1 [u1 [B_body [Hconv_t [HeBb [Het [Heu HeG3]]]]]]]].
@@ -1512,7 +1512,7 @@ Proof.
     * simpl. rewrite HeA' HeB' Heu. reflexivity.
     * exact HeG1.
 
-    (* Cas r_TermPiCong *)
+    (* r_TermPiCong *)
     + destruct IHRuss_ConvTermDecl1 as [Γ1 [u1 [v1 [T1 [Hconv1 [HeqT1 [Hequ1 [Heqv1 HeqG1]]]]]]]].
       destruct IHRuss_ConvTermDecl2 as [Γ2 [u2 [v2 [T2 [Hconv2 [HeqT2 [Hequ2 [Heqv2 HeqG2]]]]]]]].
 
@@ -1582,7 +1582,7 @@ Proof.
       * simpl. subst. auto.
       * simpl. subst. auto.
 
-    (* Cas r_TermFunEta *)
+    (* r_TermFunEta *)
     + apply section_term in r.
       destruct r as [Γ1 [f1 [Prod1 [Htyp_f [HeProd [Hef HeG1]]]]]].
       
@@ -1612,13 +1612,13 @@ Proof.
       * exact HeG1.
 
 
-    (* Cas r_TermRefl *)
+    (* r_TermRefl *)
     + apply section_term in r. destruct r as [Γ1 [t1 [A1 [Htyp [HeA [Het HeG]]]]]].
     eexists Γ1, t1, t1, A1.
     repeat split; auto.
     apply TermRefl. exact Htyp.
 
-    (* Cas r_ConvConv *)
+    (* r_ConvConv *)
     + destruct IHRuss_ConvTermDecl as [Γ1 [t1 [t'1 [A1 [Hconv_t [HeA [Het [Het' HeG1]]]]]]]].
     apply section_conv in r. destruct r as [Γ2 [A2 [B1 [Hconv_A [HeA2 [HeB HeG2]]]]]].
 
@@ -1638,13 +1638,13 @@ Proof.
             exact w1. apply typing_defeq_inv in Hconv_t. destruct Hconv_t as [? []].
             apply inv_wfcontext_typing in t0. destruct t0. auto. rewrite HeG2. auto. exact Hconv_A.
 
-    (* Cas r_TermSym *)
+    (* r_TermSym *)
     + destruct IHRuss_ConvTermDecl as [Γ1 [u1 [v1 [A1 [Hconv [HeA [Heu [Hev HeG]]]]]]]].
     eexists Γ1, v1, u1, A1.
     repeat split; auto.
     apply TermSym. exact Hconv.
 
-    (* Cas r_TermTrans *)
+    (* r_TermTrans *)
     + destruct IHRuss_ConvTermDecl1 as [Γ1 [t1 [t'1 [A1 [Hconv1 [HeA [Het [Het' HeG1]]]]]]]].
     destruct IHRuss_ConvTermDecl2 as [Γ2 [t'2 [t''1 [A2 [Hconv2 [HeA2 [Het'2 [Het'' HeG2]]]]]]]].
 
@@ -1670,7 +1670,7 @@ Proof.
             exact w0. apply typing_defeq_inv in Hconv2. destruct Hconv2 as [? []]. apply inv_wfcontext_typing in t3. destruct t3. auto.
             rewrite HeG1. auto. auto. auto. 
 
-    (* Cas r_TermUnivCumul *)
+    (* r_TermUnivCumul *)
     + destruct IHRuss_ConvTermDecl as [Γ1 [u1 [v1 [Up [Hconv [HeUp [Heu [Hev HeG]]]]]]]].
     eexists Γ1, (cLift p n u1), (cLift p n v1), (U n).
     repeat split.

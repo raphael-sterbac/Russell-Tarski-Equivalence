@@ -49,8 +49,6 @@ Axiom erase_weak_ty: forall {Γ A}, [Γ |-r r_weak_term (erase_ty A) = erase_ty 
 Axiom erase_subst_ty: forall {Γ a A}, [Γ |-r r_subst_term (erase_term a) (erase_ty A) = erase_ty (subst_ty a A) ].
 Axiom erase_subst_term: forall {Γ a t B}, [Γ |-r r_subst_term (erase_term a) (erase_term t) = erase_term (subst_term a t) : B].
 
-Axiom defeq_weak_var: forall {n}, r_weak_term (r_var_term n) = r_var_term (n + 1). 
-
 
 (* ----- Lemme de correction de l'effacement ----- *)
 

@@ -3,7 +3,9 @@ Require Import RussellTarskiEquivalence.Syntax.
 Require Import RussellTarskiEquivalence.Typing.
 
 
-(* ----- Axioms ---- *)
+(* --------- Axioms --------- *)
+
+(* --- Subtitution and weakenings (Should be provable using AutoSubst) --- *)
 
 Axiom substitution_lemma :
     forall {Γ A B a},
@@ -36,8 +38,14 @@ Axiom weak_term_lemma: forall {Γ a A B},
 Axiom subst_var_0: forall {A},
     subst_ty (var_term 0) (weak_ty A) = A.
 
+Axiom defeq_weak_var: forall {n}, r_weak_term (r_var_term n) = r_var_term (n + 1). 
+
 Axiom weak_ty_prod: forall {A B},
      Prod (weak_ty A) (weak_ty B) = weak_ty (Prod A B).
+
+
+
+(* --- Normalisation Axioms ---*)
 
 Axiom PiInj: forall {Γ A B A' B'},
     [Γ |- Prod A B = Prod A' B'] ->
@@ -57,10 +65,12 @@ Axiom subject_red: forall {Γ a b A},
     [Γ |- a = b : A] ->
     [Γ |- b : A].
 
+
+(* To make the notation simpler in erase_inj_term *)
 Axiom lift_same: forall {u Γ l},
     [Γ |- u : U l] ->
     [Γ |- u = cLift l l u : U l].
-(*TODO :  Remplacer par une notation ? *)
+(*TODO :  Remplacer par vraie notation ? *)
 
 
 (* ----- Essential lemmas -----*)
@@ -379,10 +389,10 @@ Proof.
     remember (Γ ,, A) as Γ' in H.
     dependent induction H; intros; subst; try discriminate.
     
-    (* Cas Cons : *)
+    (* Cons : *)
     + inversion w; subst. constructor; auto. constructor. auto.
     
-    (* Cas Prod *)
+    (* Prod *)
     + 
       split.
       *
@@ -392,7 +402,7 @@ Proof.
         ** auto.
         ** assumption.
 
-    (* Cas Decode *)
+    (* Decode *)
     + split.
       * 
         eapply typing_hypothesis_inv in t. destruct t as [? []]. auto.
@@ -541,7 +551,7 @@ Lemma var_inv :
 Proof.
   intros Γ t T H. intros n0 Δ0 Γ'0 A0 HeqTerm HeqCtx Hlen. subst. dependent induction H.
 
-  (* Cas wfVar0 : var 0 *)
+  (* wfVar0 : var 0 *)
   -
     destruct Δ0. simpl in x; try discriminate.
     simpl in x0. injection x0. intros; subst.
@@ -550,14 +560,14 @@ Proof.
     apply weak_lemma. assumption.
     simpl in x. contradict x. auto.
 
-  (* Cas wfVarN : var (n+1) *)
+  (* wfVarN : var (n+1) *)
   - destruct Δ0.
         * simpl in x. contradict x. lia.
         * simpl in x. simpl in x0. inversion x0. simpl. 
         specialize (IHTypingDecl Δ0 Γ'0 A0). simpl in IHTypingDecl. rewrite H2 in IHTypingDecl. specialize (IHTypingDecl JMeq_refl).
         eapply weak_cong in IHTypingDecl. exact IHTypingDecl. simpl.  assert (n = length Δ0) by lia. rewrite H0. auto.
 
-  (* Cas Conv : *)
+  (* Conv : *)
   - 
     eapply TypeTrans.
     + apply TypeSym. exact c.
@@ -613,7 +623,7 @@ Proof.
     remember (var_term (S n)) as t.
     induction H; try discriminate.
 
-    (* 2. Cas wfVarN : *)
+    (* 2. wfVarN : *)
     - injection Heqt. intro Heqn. subst.
       exists Γ, A, B.
       
@@ -629,7 +639,7 @@ Proof.
            apply weak_lemma.
            exact w. 
 
-    (* 3. Cas TermConv : *)
+    (* 3. TermConv : *)
     -
       specialize (IHTypingDecl Heqt).
       destruct IHTypingDecl as [Γ' [T_head [B_origin [HeqΓ [Htyp HeqType]]]]].
@@ -653,7 +663,7 @@ Proof.
   revert Γ A0 A1.
   induction n; intros Γ A0 A1 H1 H2.
 
-  (* 1. Cas n = 0 *)
+  (* 1. n = 0 *)
   - apply variable_zero_inv in H1.
     destruct H1 as [Γ1 [B1 [HeqA1 [HeqG1 Hwf1]]]].
     apply variable_zero_inv in H2.
@@ -665,7 +675,7 @@ Proof.
     + exact HeqA1.
     + apply TypeSym. exact HeqA2.
 
-  (* 2. Cas n = S n *)
+  (* 2. n = S n *)
   - apply variable_non_zero_inv in H1.
     destruct H1 as [Γ1 [T1 [B1 [HeqG1 [Hvar1 HeqA1]]]]].
     apply variable_non_zero_inv in H2.
@@ -750,6 +760,9 @@ Proof.
     intros. lia.
 Qed.
 
+
+(* Utilites using lift_same as a notation *)
+(*TODO : supprimer et remplacer par une vraie notation ? *)
 Lemma conv_lift_univ_min {Γ l l0 l1}:
     [ |- Γ] ->
     l < l0 ->
