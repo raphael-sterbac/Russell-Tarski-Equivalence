@@ -1,0 +1,6 @@
+-Q . RussellTarskiEquivalence
+Syntax.v
+Typing.v
+Utils.v
+Erasure.v
+Equivalence.v

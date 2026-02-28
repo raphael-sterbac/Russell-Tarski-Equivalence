@@ -1,0 +1,26 @@
+# Rocq compiled files
+*.vo
+*.vos
+*.vok
+
+# ------------------------------------
+# Auxiliary files
+# ------------------------------------
+*.glob
+*.aux
+.*.aux
+.lia.cache
+*.crash
+
+# ------------------------------------
+# Makefiles
+# ------------------------------------
+Makefile
+Makefile.conf
+.Makefile.d
+
+# Compiled files
+*.cmi
+*.cmo
+*.cmx
+*.o
