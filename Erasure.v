@@ -3,7 +3,7 @@ Require Import RussellTarskiEquivalence.Syntax.
 Require Import RussellTarskiEquivalence.Typing.
 Require Import RussellTarskiEquivalence.Utils.
 
-(* ----- Fonctions d'effacement ----*)
+(*  Erasure function *)
 Fixpoint erase_term (t: term) : russ_term :=
     match t with
         | var_term n => r_var_term n 
@@ -50,9 +50,8 @@ Axiom erase_subst_ty: forall {Γ a A}, [Γ |-r r_subst_term (erase_term a) (eras
 Axiom erase_subst_term: forall {Γ a t B}, [Γ |-r r_subst_term (erase_term a) (erase_term t) = erase_term (subst_term a t) : B].
 
 
-(* ----- Lemme de correction de l'effacement ----- *)
+(* Correction of erasure  *)
 
-(* 1. On régénère les schémas proprement *)
 Scheme wf_ctx_rect := Induction for WfContextDecl Sort Type
   with wf_ty_rect := Induction for WfTypeDecl Sort Type
   with typing_rect := Induction for TypingDecl Sort Type
@@ -62,7 +61,6 @@ Scheme wf_ctx_rect := Induction for WfContextDecl Sort Type
 Combined Scheme mut_ind_erasure_rect from 
   wf_ctx_rect, wf_ty_rect, typing_rect, conv_ty_rect, conv_term_rect.
 
-(* 2. Le Théorème *)
 Theorem erasure_correction_mutual :
   (forall (Γ : ctx) (H : [ |- Γ ]), [ |-r erase_context Γ]) *
   ((forall (Γ : ctx) (A : ty) (H : [Γ |- A]), [(erase_context Γ) |-r (erase_ty A)]) *
@@ -72,16 +70,16 @@ Theorem erasure_correction_mutual :
 Proof.
   apply mut_ind_erasure_rect.
 
-  (* --- 1. WfContextDecl --- *)
+  (* WfContextDecl *)
   - simpl. constructor.
   - simpl. intros. apply r_concons; assumption.
 
-  (* --- 2. WfTypeDecl--- *)
+  (* WfTypeDecl *)
   - intros. simpl. constructor. assumption.
   - intros. simpl. apply product_wf_ty; assumption.
   - intros. simpl. eapply r_wfTypeUniv. simpl in H. exact H.
 
-  (* --- 3. TypingDecl --- *)
+  (* TypingDecl *)
   - intros. simpl. eapply r_wfTermConv. apply r_wfVar0. assumption. apply erase_weak_ty.
   - intros. simpl. eapply r_wfTermConv. eapply r_wfVarN. assumption. simpl in H0. exact H0. apply erase_weak_ty.
   - intros. simpl. constructor; assumption.
@@ -91,7 +89,7 @@ Proof.
   - intros. simpl. eapply r_wfTermConv. apply r_wfTermApp. assumption. assumption. apply erase_subst_ty.
   - intros. simpl. eapply r_wfTermConv. exact H. assumption.
 
-  (* --- 4. ConvTypeDecl --- *)
+  (* -ConvTypeDecl*)
   - intros. simpl. constructor; assumption.
   - intros. simpl. eapply r_TypeUnivConv. exact H.
   - intros. simpl. eapply r_TypeUnivConv. apply r_TermRefl. eapply r_wfTermUniv. assumption. exact l.
@@ -101,7 +99,7 @@ Proof.
   - intros. simpl. eapply r_TypeTrans; eauto.
   - intros. simpl. apply r_TypeSym. assumption.
 
-  (* --- 5. ConvTermDecl --- *)
+  (* ConvTermDecl *)
   - intros. simpl. eapply r_ConvConv. rewrite <- defeq_erase_subst_term. eapply r_TermBRed. auto. simpl in H0; auto. auto. apply erase_subst_ty.
   - intros. simpl. apply r_TermPiCong.  simpl in H; exact H.  simpl in H0; exact H0. simpl in H1; exact H1.
   - intros. simpl. eapply r_ConvConv. apply r_TermAppCong; assumption. apply erase_subst_ty.
@@ -120,23 +118,18 @@ Proof.
   - intros. simpl. eapply r_TermTrans; eauto.
 Qed.
 
-(* 1. Formation du contexte *)
 Definition ctx_formation_to_russ {Γ} (H : [ |- Γ ]) := 
   (fst erasure_correction_mutual) Γ H.
 
-(* 2. Bonne formation du type  *)
 Definition erasure_correction_wf_ty {Γ A} (H : [Γ |- A]) := 
   (fst (snd erasure_correction_mutual)) Γ A H.
 
-(* 3. Typage  *)
 Definition erasure_correction_typing {Γ a A} (H : [Γ |- a : A]) := 
   (fst (snd (snd erasure_correction_mutual))) Γ a A H.
 
-(* 4. Conversion de type  *)
 Definition erasure_correction_conversion {Γ A B} (H : [Γ |- A = B]) := 
   (fst (snd (snd (snd erasure_correction_mutual)))) Γ A B H.
 
-(* 5. Conversion de terme *)
 Definition erasure_correction_conv_typing {Γ a b A} (H : [Γ |- a = b : A]) := 
   (snd (snd (snd (snd erasure_correction_mutual)))) Γ a b A H.
 

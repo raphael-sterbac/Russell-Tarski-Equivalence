@@ -70,7 +70,7 @@ Lemma erase_decode_inv_prod t:
     [Γ |- Decode l t] ->
     [Γ |- Prod A B] ->
     (forall C, [Γ |- A] -> [Γ |- C] -> (erase_ty A = erase_ty C) -> [Γ |- A = C]) ->
-    (forall C, [Γ,, A |- B] -> [Γ,,A |- C] -> (erase_ty B = erase_ty C) -> [Γ,,A |- B = C]) ->
+    (forall C, [Γ,, A |- B] -> [Γ,,A |- C] -> (erase_ty B = erase_ty C) -> [Γ,,A |- B = C]) -> (*TODO : pas le droit aux hypothèses ici ? *)
     r_Prod (erase_ty A) (erase_ty B) = erase_term t ->
     [Γ |- Prod A B = Decode l t].
 Proof.
@@ -246,7 +246,7 @@ Proof.
       simpl in Herase. injection Herase. intros Heq_a Heq_f Heq_B Heq_A.
       
       pose proof H_App as Happ_orig.
-      (* On récupère Heq_A0_subst : [Γ |- A0 = subst_ty a B] *)
+      
       apply app_inv in H_App. destruct H_App as [Heq_A0_subst [HwfA [HwfB [Htyp_f Htyp_a]]]].
       
       pose proof H_t as Ht_orig.
@@ -272,7 +272,7 @@ Proof.
       specialize (H_f Γ t3 (Prod A B) Htyp_f Htyp_f0_conv Heq_f).
       destruct H_f as [[Heq_f_conv H_Prod_eq] | Right_f].
       
-      + (* f is strict equality *)
+      + 
         assert (Htyp_a0_conv : [Γ |- t4 : A]).
         { eapply wfTermConv. 
           - exact Htyp_a0. 
@@ -280,7 +280,7 @@ Proof.
         specialize (H_a Γ t4 A Htyp_a Htyp_a0_conv Heq_a).
         
         destruct H_a as [[Heq_a_conv H_A_eq] | Right_a].
-        * (* a is strict equality *)
+        * 
           apply inl. split.
           -- eapply TermConv. 
              ++ apply TermAppCong.
@@ -294,7 +294,7 @@ Proof.
              ++ eapply subst_cong. exact HeqB. exact Heq_a_conv.
              ++ apply TypeSym. exact Heq_A1_subst.
 
-        * (* a is a lift *)
+        * 
           assert (Heq_a_conv : [Γ |- a = t4 : A]).
           { eapply simplify_induction_grouped. exact Right_a. apply TypeRefl. exact HwfA. }
           apply inl. split.
@@ -310,40 +310,39 @@ Proof.
              ++ eapply subst_cong. exact HeqB. exact Heq_a_conv.
              ++ apply TypeSym. exact Heq_A1_subst.
 
-      + (* f is a lift *)
+      +
         destruct Right_f as [l0' [l1' [k [v0 [v1 [Heq_Prod_U _]]]]]].
         exfalso. eapply cohesion_prod_univ. 
         ++ exact Htyp_f.
         ++ eapply wfTermConv. exact Htyp_f. exact Heq_Prod_U.
         
-    - (* t = cLift k_t l_t t_inner *)
+    -
       simpl in Herase. rename l into k_t. rename l0 into l_t.
       
       pose proof H_t as Ht_orig.
       apply lift_inv_plus in H_t. destruct H_t as [n1 [H_A1_Un1 [H_lt_n1 [H_kt_lt H_t_Ukt]]]].
       subst n1.
       
-      (* L'appel récursif utilise directement A0 ! *)
       specialize (IHt A B f a A0 (U k_t) H_App H_t_Ukt Hinj_A Hinj_B H_f H_a Herase).
       
       destruct IHt as [[Heq_App_t H_A0_Ukt] | [l0' [l1' [k_in [v0 [v1 [H_A0_Ul0 [H_Ukt_Ul1 [H_App_lift [H_t_lift H_v0_v1]]]]]]]]]].
-      + (* Left: IHt a renvoyé l'égalité stricte App = t_inner *)
+      + 
         apply inr. eexists k_t, l_t, k_t, (App A B f a), t.
         repeat split; auto.
-        * (* App = cLift k_t k_t App *)
+        *
           eapply TermConv. instantiate (1:= U k_t).
         -- apply lift_same. eapply wfTermConv. exact H_App. exact H_A0_Ukt.
           -- apply TypeSym. exact H_A0_Ukt.
-        * (* cLift k_t l_t t = cLift k_t l_t t *)
+        *
           apply TermRefl. exact Ht_orig.
-        * (* App = t_inner : U k_t *)
+        * 
           eapply TermConv. exact Heq_App_t. exact H_A0_Ukt.
           
-      + (* Right: App et t_inner sont déjà tous les deux des lifts profonds *)
+      +
         apply UInj in H_Ukt_Ul1. subst l1'.
         apply inr. eexists l0', l_t, k_in, v0, v1.
         repeat split; auto.
-        * (* cLift k_t l_t t = cLift k_in l_t v1 *)
+        * 
           eapply TermConv. instantiate (1:= U l_t).
           eapply TermTrans. instantiate (1:= cLift k_t l_t (cLift k_in k_t v1)).
           -- apply TermLiftingCong. exact H_t_lift. exact H_kt_lt.
@@ -359,9 +358,9 @@ Lemma erase_cprod_inv {Γ t}:
     forall a b l A0 A1,
     [Γ |- cProd l a b : A0] ->
     [Γ |- t : A1] ->
-    (* Hypothèses d'injectivité des types *)
+
     (forall C, [Γ |- A0] -> [Γ |- C] -> (erase_ty A0 = erase_ty C) -> [Γ |- A0 = C]) ->
-    (* Hypothèse pour a *)
+
     (forall Γ' u1 A1,
     [Γ' |- a : U l] ->
     [Γ' |- u1 : A1] ->
@@ -372,7 +371,7 @@ Lemma erase_cprod_inv {Γ t}:
         × [Γ' |- a = cLift k l0 v0 : U l]
         × [Γ' |- u1 = cLift k l1 v1 : A1]
         × [Γ' |- v0 = v1 : U k] )) ->
-    (* Hypothèse pour b *)
+
     (forall Γ' u1 A1,
     [Γ' |- b : U l] -> 
     [Γ' |- u1 : A1] ->
@@ -384,7 +383,7 @@ Lemma erase_cprod_inv {Γ t}:
         × [Γ' |- u1 = cLift k l1 v1 : A1]
         × [Γ' |- v0 = v1 : U k] )) ->
     r_Prod (erase_term a) (erase_term b) = erase_term t ->
-    (* Conclusion *)
+
     ([Γ |- cProd l a b = t : A0 ] × [Γ |- A0 = A1])
     + (∑ l0 l1 k v0 v1, [Γ |- A0 = U l0] 
         × [Γ |- A1 = U l1]
@@ -737,14 +736,12 @@ Proof.
 Qed. 
 
 
-(* -------- Lemme principal ------- *)
+(* -------- Main lemma ------- *)
 
 Unset Guard Checking.
 
-(* TODO : Ici j'aimerais bien vraiment prouver la terminaison, le problème est que j'utilise
-des lemmes intermediaires qui bloquent le guard checker... Pour garder la modularité de la preuve
-tout en prouvant la terminaison, il faudrait que je modifie les lemmes erase_inv pour prendre
-en compte la décroissance des arguments. Sinon je peux inliner les preuves, mais ce sera moins joli... *)
+(* TODO : Ici j'aimerais bien prouver la terminaison. Je pense que le problème c'est les appels aux lemmes 
+intermédiaires qui parfoient utilisent une hypothèse d'induction illégale quand on les remplit avec auto.  *)
 
 Fixpoint erase_inj_ty_fix (A : ty) {struct A} :
   forall Γ B, [Γ |- A] -> [Γ |- B] -> (erase_ty A = erase_ty B) -> [Γ |- A = B]
@@ -779,7 +776,7 @@ Proof.
     + (* A = Decode l a *)
       intros Γ B H_A H_B Herase; destruct B; try (simpl in Herase; contradict Herase; congruence).
       * (* B = Prod *)
-        simpl in Herase. apply TypeSym. apply erase_decode_inv_prod; auto.
+        simpl in Herase. apply TypeSym. apply erase_decode_inv_prod. auto. auto. auto. auto. auto. (*TODO : Application illégale ici ?*) 
       * (* B = Decode l0 t *)
         simpl in Herase. apply decode_ty_inv in H_A. apply decode_ty_inv in H_B.
         assert (H_term := erase_inj_term_fix a Γ t _ _ H_A H_B Herase).
@@ -816,7 +813,7 @@ Proof.
       
     + (* u0 = Lambda A B u0 *)
       destruct u1; try(simpl in Herase; contradict Herase; congruence).
-    * (* u1 = Lambda *)
+      * (* u1 = Lambda *)
         simpl in Herase. injection Herase; intros Heq_u Heq_B Heq_A.
         apply lambda_inv in H_u0. destruct H_u0 as [H_A0 H_u0].
         apply lambda_inv in H_u1. destruct H_u1 as [H_A1 H_u1].

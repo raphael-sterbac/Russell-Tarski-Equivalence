@@ -3,18 +3,14 @@
 *.vos
 *.vok
 
-# ------------------------------------
 # Auxiliary files
-# ------------------------------------
 *.glob
 *.aux
 .*.aux
 .lia.cache
 *.crash
 
-# ------------------------------------
 # Makefiles
-# ------------------------------------
 Makefile
 Makefile.conf
 .Makefile.d
@@ -24,3 +20,5 @@ Makefile.conf
 *.cmo
 *.cmx
 *.o
+
+test.v
