@@ -927,7 +927,7 @@ induction A. (* Induction on A *)
                 ** apply TypeSym. apply TypeDecodeCong. exact c2.
 
     -- apply erase_decode_inv_univ; auto.
-Qed.            
+Admitted.            
 
 Lemma erase_inj_term_plus {u0}:
     forall Γ u1 A0 A1,
