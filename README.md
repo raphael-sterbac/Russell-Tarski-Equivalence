@@ -1,16 +1,16 @@
 # Equivalence of Cumulative Universe Hierarchies in Dependent Type Theory
 
-This repository contains the Rocq formalization of the equivalence between Russell and Tarski presentations for a cumulative hierarchy of universes in dependent type theory. 
+Rocq formalization of a proof of equivalence between Russell and Tarski presentations for a cumulative hierarchy of universes in dependent type theory. 
 
 ## Overview
 
-In dependent type theory, cummulative universes have two common presentations. The Russell-style universes are often regarded as an informal  notation where types and universes are mixed. The Tarski-style is a fully explicit presentation with decoding and lifting functions, which is essential to define Type Theory as a Generalised Algebraic Theory (GAT) and to provide rigorous semantics and models.
+In dependent type theory, cummulative universes have two common presentations. The Russell-style universes, where types and universes are mixed and coercions are implicit. The Tarski-style is a fully explicit presentation with decoding and lifting functions, which is essential to define Type Theory as a Generalised Algebraic Theory (GAT) and to provide rigorous semantics and models.
 
 The goal of this project is to provide a modular, algorithmic proof of equivalence between these two presentations for a theory featuring dependent products, cumulative universes, and judgmental $\beta\eta$ conversion.
 
 ## Formalization Structure
 
-The formalization is written in Rocq (`main.v`) and revolves around a forgetful erasure map from the Tarski theory to the Russell theory. 
+The formalization is written in Rocq (`main.v`) and focuss on the erasure map from the Tarski theory to the Russell theory. The main result is proving that this erasure map admits a section.
 
 ### Project Layout
 * `Syntax.v`: Grammars of the two systems and basic structures.
@@ -33,7 +33,7 @@ If a judgment holds in the Russell system, there exists a unique (up to conversi
 
 As outlined in the abstract, the equivalence proof fundamentally relies on the normalisation and injectivity of type constructors for the Tarski-style theory. While normalisation can be proven via an adaptation of the gluing technique, this specific Rocq formalization takes normalisation and injectivity of type formers (such as `PiInj` and `UInj`) as axioms to focus purely on the equivalence algorithms.
 
-At the moment, the formalisation also puts all the subsitution and weakening lemmas as axioms. It would be great to recover them from a tool such as AutoSubst, to obtain a self-contained proof.
+At the moment, the formalisation also puts all the subsitution and weakening lemmas as axioms. It would be great to recover them from a tool such as AutoSubst, to obtain a fully self-contained proof.
 
 ## Building the Project
 
