@@ -114,7 +114,6 @@ Lemma erase_var_inv {Γ t}:
     forall A A1 n,
     [Γ |- var_term n : A] ->
     [Γ |- t : A1] ->
-    (forall C, [Γ |- A] -> [Γ |- C] -> (erase_ty A = erase_ty C) -> [Γ |- A = C]) ->
     r_var_term n = erase_term t ->
     ([Γ |- var_term n = t : A] × [Γ |- A = A1])
     + (∑ l0 l1 k v0 v1, [Γ |- A = U l0] 
@@ -123,7 +122,7 @@ Lemma erase_var_inv {Γ t}:
         × [Γ |- t = cLift k l1 v1 : A1]
         × [Γ |- v0 = v1 : U k] ).
 Proof.
-    induction t; intros A A1 n0 Hvar Ht Hinj Herase;
+    induction t; intros A A1 n0 Hvar Ht Herase;
     try (simpl in Herase; discriminate).
     
     - (* t = var_term *)
@@ -139,7 +138,7 @@ Proof.
       apply lift_inv_plus in Ht. destruct Ht as [n1 [H_A1_Un1 [H_lt_n1 [H_kt_lt H_t_Ukt]]]].
       subst n1.
       
-      specialize (IHt A (U k_t) n0 Hvar H_t_Ukt Hinj Herase).
+      specialize (IHt A (U k_t) n0 Hvar H_t_Ukt Herase).
       
       destruct IHt as [[Heq_var_t H_A_Ukt] | [l0' [l1' [k_in [v0 [v1 [H_A_Ul0 [H_Ukt_Ul1 [H_var_lift [H_t_lift H_v0_v1]]]]]]]]]].
       + 
@@ -358,9 +357,6 @@ Lemma erase_cprod_inv {Γ t}:
     forall a b l A0 A1,
     [Γ |- cProd l a b : A0] ->
     [Γ |- t : A1] ->
-
-    (forall C, [Γ |- A0] -> [Γ |- C] -> (erase_ty A0 = erase_ty C) -> [Γ |- A0 = C]) ->
-
     (forall Γ' u1 A1,
     [Γ' |- a : U l] ->
     [Γ' |- u1 : A1] ->
@@ -391,7 +387,7 @@ Lemma erase_cprod_inv {Γ t}:
         × [Γ |- t = cLift k l1 v1 : A1]
         × [Γ |- v0 = v1 : U k] ).
 Proof.
-  induction t; intros a b l_ A0 A1 Hprod Ht Hinj_ty Ha Hb Herase;
+  induction t; intros a b l_ A0 A1 Hprod Ht Ha Hb Herase;
   
   try (simpl in Herase; discriminate).
 
@@ -649,7 +645,7 @@ Proof.
     apply code_prod_inv_plus in Hprod. destruct Hprod as [n_A0 [H_A0_Ul [H_l_nA0 [H_a_Ul H_b_Ul]]]]. subst n_A0.
     apply lift_inv_plus in Ht. destruct Ht as [n' [H_A1_Un' [H_lt_n' [H_kt_lt H_t'_Ukt]]]]. subst n'.
     
-    specialize (IHt a b l_ A0 (U k_t) Hprod_orig H_t'_Ukt Hinj_ty Ha Hb Herase).
+    specialize (IHt a b l_ A0 (U k_t) Hprod_orig H_t'_Ukt Ha Hb Herase).
     
     destruct IHt as [[Heq_cProd H_A0_Ukt] | [l0' [l1' [k_in [v0 [v1 [H_A0_Ul0 [H_Ukt_Ul1 [H_cProd_lift [H_t'_lift H_v0_v1]]]]]]]]]].
     +
@@ -736,198 +732,314 @@ Proof.
 Qed. 
 
 
-
-(* -------- Main lemma ------- *)
-
-Lemma erase_inj_ty A : forall Γ B, [Γ |- A] -> [Γ |- B] -> (erase_ty A = erase_ty B) -> [Γ |- A = B]
-with erase_inj_term u0:
-    forall Γ u1 A0 A1,
-    [Γ |- u0 : A0] ->
-    [Γ |- u1 : A1] ->
-    (erase_term u0 = erase_term u1) ->
-    ([Γ |- u0 = u1 : A0] × [Γ |- A0 = A1])
-    + (∑ l0 l1 k v0 v1, [Γ |- A0 = U l0] 
-        × [Γ |- A1 = U l1]
-        × [Γ |- u0 = cLift k l0 v0 : A0]
-        × [Γ |- u1 = cLift k l1 v1 : A1]
-        × [Γ |- v0 = v1 : U k] )
-with erase_decode_inv B:
+Lemma erase_decode_inv (B: ty) :
     forall Γ l t,
     [Γ |- Decode l t] ->
     [Γ |- B] ->
+    (forall Γ' u1 A1,
+    [Γ' |- t : U l] -> 
+    [Γ' |- u1 : A1] ->
+    (erase_term t = erase_term u1) ->
+    ([Γ' |- t = u1 : U l] × [Γ' |- U l = A1])
+    + (∑ l0 l1 k v0 v1, [Γ' |- U l = U l0] 
+        × [Γ' |- A1 = U l1]
+        × [Γ' |- t = cLift k l0 v0 : U l]
+        × [Γ' |- u1 = cLift k l1 v1 : A1]
+        × [Γ' |- v0 = v1 : U k] )) ->
     erase_ty B = erase_term t ->
     [Γ |- B = Decode l t].
 Proof.
-
-(* Types *)
-induction A. (* Induction on A *)
-- intros; destruct B. (* A = Prod A1 A2 *)
-    all: try (simpl in H1; contradict H1; congruence).
-    + simpl in H1. inversion H1. apply TypePiCong. apply prod_ty_inv in H. destruct H. auto.
-        ++ apply IHA1. apply prod_ty_inv in H,H0. destruct H,H0. auto. auto. inversion H0. auto. auto.
-        ++ apply IHA2. apply prod_ty_inv in H,H0. destruct H,H0. auto. auto. inversion H0. eapply conv_hypothesis_wftype.
-            instantiate (1:= B1). auto. apply TypeSym. apply IHA1. apply prod_ty_inv in H,H0. destruct H,H0. auto.
-            apply prod_ty_inv in H,H0. destruct H,H0. auto. auto. auto.
-    + simpl in H1. apply erase_decode_inv_prod. auto. constructor. apply prod_ty_inv in H. destruct H. auto. apply prod_ty_inv in H. destruct H. auto.
-      specialize (IHA1 Γ). exact IHA1. specialize (IHA2 (Γ,,A1)). exact IHA2. auto.
+  induction B as [B1 IHB1 B2 IHB2 | l_B t_B | n_B]; intros Γ l t H_Dec H_B HInj Herase.  
+  
+  - revert Γ l H_Dec H_B HInj Herase.
+    induction t as [ n_var 
+                   | A_lam B_lam t_lam IHt_lam 
+                   | A_app B_app t1_app IHt1_app t2_app IHt2_app 
+                   | l_prod t1_prod IHt1_prod t2_prod IHt2_prod 
+                   | k_u l_u 
+                   | k_lift l_lift t_inner IHt_inner ]; 
+      intros Γ l H_Dec H_B HInj Herase; try (simpl in Herase; discriminate).
     
-- intros. apply TypeSym. apply erase_decode_inv. all: auto.
-    
-- intros;  destruct B. (* A = U n *)
-    all: try (simpl in H1; contradict H1; congruence). (* Eliminate impossible cases *)
-    + apply erase_decode_inv_univ. auto. simpl in H0. auto. 
-    + simpl in H0. inversion H0. auto.
-
-
-(* Terms *)
-- induction u0.
-
-    (* u0 = var_term n *)
-    + intros. apply erase_var_inv. all: auto.
-    
-    (* u0 = Lambda *)
-    + intros. destruct u1.
-        all: try(simpl in H1; contradict H1; congruence).
-        ++ simpl in H1. inversion H1. apply lambda_inv in H. destruct H. apply lambda_inv in H0. destruct H0.
-            apply wftype_typing_inv in  t3; destruct t3. apply wftype_typing_inv in t4; destruct t4.
-            apply wftype_hypothesis_inv in w; destruct w. apply wftype_hypothesis_inv in w0; destruct w0.  
-            apply erase_inj_ty with (1:=w) (2:= w0) in H3. assert (H' := H3). apply conv_hypothesis_typing with (1:= t3) in H3.
-            apply IHu0 with (1:=H3) (2:= t4) in H5. destruct H5.
-            assert (H := H'). apply conv_hypothesis_wftype with (1:= w1) in H'. apply erase_inj_ty with (1:= H') (2:=w2) in H4. destruct p.
-                +++ constructor. 
-                    constructor. eapply TermConv. instantiate (1:=Prod t t0). eapply TermLambdaCong. auto. auto.
-                    eapply conv_hypothesis_type_eq. instantiate (1:= t1). auto. auto using TypeSym.
-                    eapply conv_hypothesis_term_eq. instantiate (1:= t1). auto. apply TypeSym; auto.
-                    auto using TypeSym. apply TypeTrans with (1:= c). apply TypeSym. apply TypeTrans with (1:=c0).
-                    constructor. auto. auto using TypeSym. auto using TypeSym.
-                +++ destruct s as [projT3 [projT4 [projT5 [projT6 [projT7 [ ? [? [ ? []]]]]]]]]. apply inl. 
-                    assert (H := H'). apply conv_hypothesis_wftype with (1:= w1) in H'. apply erase_inj_ty with (1:= H') (2:=w2) in H4.
-                    constructor. eapply TermConv. instantiate (1:=Prod t t0). eapply TermLambdaCong. auto. auto. 
-                    eapply conv_hypothesis_type_eq. instantiate (1:= t1). auto. auto using TypeSym.
-                    eapply TermTrans. instantiate (1:= cLift projT5 projT3 projT6). eapply conv_hypothesis_term_eq. instantiate (1:= t1). auto. auto using TypeSym.
-                    eapply TermTrans. instantiate (1:= cLift projT5 projT4 projT7). eapply TermConv. instantiate (1:= U projT3).
-                    apply TypeTrans with (1:=H4) in c2. apply TypeSym in c2. apply TypeTrans with (1:= c2) in c1. apply UInj in c1.
-                    rewrite c1. apply TermLiftingCong. eapply conv_hypothesis_term_eq. instantiate (1:=t1). auto. auto using TypeSym.
-                    apply typing_defeq_inv in c3. destruct c3 as [? []]. apply TypeSym in c2. eapply wfTermConv with (1:= t6) in c2. apply lift_inv in c2.
-                    destruct c2 as [? []]. all: auto using TypeSym. eapply conv_hypothesis_type_eq. instantiate (1:= t1). all: auto using TypeSym.
-                    eapply conv_hypothesis_term_eq. instantiate (1:= t1). apply TermSym. apply TermConv with (1:= c4). all: auto using TypeSym.
-                    eapply TypeTrans. instantiate (1:= Prod t t0). auto. apply TypeSym. eapply TypeTrans. instantiate (1:= Prod t1 t2). auto.
-                    apply TypePiCong. all: auto using TypeSym.
-                    (* Utiliser simplify_induction pour simplifier la preuve ?*)
-
-        ++ simpl in H1. assert (Hbis := H). apply lambda_inv in Hbis; destruct Hbis. apply wfTermConv with (1:=H) in c.
-            apply inl. eapply erase_lambda_inv with (1:= c) (2:= H0) in H1.  
-            
-            constructor. assert (Hbis := H). apply lambda_inv in Hbis; destruct Hbis.
-            eapply TermConv. instantiate (1:= Prod t t0). auto using TypeSym. auto using TypeSym. 
-            apply subject_red in H1. assert (Hbis := H0). apply lift_inv_plus in H0; destruct H0 as [? [? [? []]]].
-            apply wfTermConv with (1:= Hbis) in c0. contradict H1. intros. apply cohesion_prod_univ with (1:= H1) (2:= c0). auto.
-            apply erase_inj_ty. apply erase_inj_ty. intros. apply IHu0. auto. auto. auto.
-
-    (* u0 = App *)
-    + intros. apply erase_app_inv. auto. auto. apply erase_inj_ty. apply erase_inj_ty.
-      intros. apply IHu0_1. auto. auto. auto. intros. apply IHu0_2. auto. auto. auto. auto.
-    
-    (* u0 = cProd *)
-    + intros. apply erase_cprod_inv. auto. auto. apply erase_inj_ty.
-      intros. apply IHu0_1. auto. auto. auto. intros. apply IHu0_2. auto. auto. auto. auto.
-
-    (* u0 = cU *)
-    + intros. destruct u1. 
-        all: try(simpl in H1; contradict H1; congruence).
-        ++  simpl in H1. inversion H1. assert (Hbis:=H). apply code_univ_inv_bis in Hbis. destruct Hbis.
-        assert (H0bis:=H0). apply code_univ_inv_bis in H0bis. destruct H0bis.
-        apply inr. eexists l0. eexists l2. set (k:=(Nat.min l0 l2)). eexists k. eexists (cU l k). eexists (cU l k).
-        constructor. auto. constructor. auto. constructor. apply TermSym. eapply TermConv. instantiate (1:= U l0).
-        rewrite H3. apply conv_lift_univ_min_comm. apply inv_wfcontext_typing in H. destruct H. auto. auto. lia. auto using TypeSym.
-
-        constructor.  apply TermSym. eapply TermConv. instantiate (1:= U l2).
-        rewrite H3. apply conv_lift_univ_min. apply inv_wfcontext_typing in H. destruct H. auto. lia. lia. auto using TypeSym.
-        apply TermRefl. constructor. apply inv_wfcontext_typing in H. destruct H. auto.
-        apply inf_min. auto. rewrite H3; auto.
-
-        ++ simpl in H1. apply inr. eexists l0; eexists l2. apply erase_cuniv_inv.
-            auto. auto. auto.
-    
-    (* u0 = cLift *)
-    + intros. assert (Hbis:= H). apply lift_inv_plus in Hbis. destruct Hbis as [? [? [? []]]].
-        apply IHu0 with (1:=t) (2:=H0) in H1. destruct H1.
-        ++ destruct p. symmetry in e. rewrite e in c. apply TypeSym in c1. apply inr.
-            eexists l0. eexists l. eexists l. eexists u0. eexists u0.
-            constructor; auto.
-            constructor; auto.
-            constructor. apply TermRefl. auto.
-            constructor. eapply TermConv. instantiate (1:= U l). eapply TermTrans. instantiate (1:=u0).
-            auto using TermSym. eapply lift_same. auto.  auto using TypeSym. apply TermRefl. auto.
-     
-        ++ destruct s as [projT4 [projT5 [projT6 [projT7 [projT8 [? [? [? []]]]]]]]]. apply inr. apply UInj in c0. symmetry in e; rewrite e in c.
-            eexists l0. eexists projT5. eexists projT6. eexists projT7. eexists projT8.
-            constructor. auto.
-            constructor. auto.
-            constructor. assert (l1bis:=l1). apply TermLiftingCong with (1:= c2) in l1bis.
-            eapply TermConv. instantiate (1:= U l0).
-            eapply TermTrans. instantiate (1:= cLift l l0 (cLift projT6 projT4 projT7)). 
-            auto. rewrite c0. apply TermLiftingCumul. apply typing_defeq_inv in c4. destruct c4 as [? []].
-            auto. apply typing_defeq_inv in c2. destruct c2 as [? []]. apply lift_inv_plus in t1. destruct t1 as [? [? [? []]]].
-            auto. rewrite c0 in l1. auto. auto using TypeSym.
-            constructor. auto.
-            auto.
-
-  (* --- erase_decode_inv ---*)
-  - induction B; intros.
-    
-    --
-      revert Γ l H H0 H1.
-      induction t; intros; try (simpl in H1; discriminate).
+    + (* cProd *)
+      simpl in Herase. injection Herase; intros Heq2 Heq1.
+      apply decode_ty_inv in H_Dec. apply code_prod_inv in H_Dec as [Heql [Ht1 Ht2]]. 
+      subst l_prod. 
+      apply prod_ty_inv in H_B as [Hwf_B1 Hwf_B2].
       
-      +
-        simpl in H1. injection H1; intros Heq2 Heq1.
-        apply decode_ty_inv in H. apply code_prod_inv in H as [Heql [Ht1 Ht2]]. subst l0.
-        apply prod_ty_inv in H0 as [Hwf_B1 Hwf_B2].
+      eapply TypeTrans. 
+      2: { apply TypeSym. apply TypeDecodeProdConv; eauto. }
+      apply TypePiCong.
+      * exact Hwf_B1.
+      * apply IHB1; eauto. apply wfTypeDecode; eauto. admit. (*TODO: Ici t1_prod est bien un sous-terme de t *)
+      * apply IHB2; eauto.
+        -- eapply conv_hypothesis_wftype.
+           ++ apply wfTypeDecode; eauto.
+           ++ apply TypeSym. apply IHB1; eauto. apply wfTypeDecode; eauto. admit.
+        -- admit.
+
+    + (* cLift *)
+      apply decode_ty_inv in H_Dec. apply lift_inv in H_Dec as [Heql [Hlt Ht_inner_wf]]. 
+      subst l_lift.
+      simpl in Herase.
+      eapply TypeTrans.
+      * apply IHt_inner; eauto. apply wfTypeDecode; eauto. admit. (*ICI : problème !!!!*)
+      * apply TypeDecodeLiftConv; eauto.
+
+  - simpl in Herase.
+    apply decode_ty_inv in H_Dec.
+    apply decode_ty_inv in H_B.
+    
+    apply sym_eq in Herase. apply HInj with (1:=H_Dec) (2:=H_B) in Herase.
+  - apply erase_decode_inv_univ; auto.
+Admitted.
+(* TODO : Enlever erase_decode_inv*)
+
+
+
+(* ----- Principal lemma : judgemental injectivity of erasure ----- *)
+
+Scheme ty_rect_mut := Induction for ty Sort Type
+with term_rect_mut := Induction for term Sort Type.
+
+Combined Scheme mut_ind_ty_term from ty_rect_mut, term_rect_mut.
+
+Definition P_erase_ty (A : ty) :=
+  forall Γ B, [Γ |- A] -> [Γ |- B] -> (erase_ty A = erase_ty B) -> [Γ |- A = B].
+
+Definition P_erase_term (u0 : term) :=
+  forall Γ u1 A0 A1,
+  [Γ |- u0 : A0] ->
+  [Γ |- u1 : A1] ->
+  (erase_term u0 = erase_term u1) ->
+  ([Γ |- u0 = u1 : A0] × [Γ |- A0 = A1])
+  + (∑ l0 l1 k v0 v1, [Γ |- A0 = U l0] 
+      × [Γ |- A1 = U l1]
+      × [Γ |- u0 = cLift k l0 v0 : A0]
+      × [Γ |- u1 = cLift k l1 v1 : A1]
+      × [Γ |- v0 = v1 : U k] ).
+
+Theorem erase_inj_mutual :
+  (forall A, P_erase_ty A) * (forall u0, P_erase_term u0).
+Proof.
+  apply mut_ind_ty_term; unfold P_erase_ty, P_erase_term.
+
+  (* ---- erase_inj_ty ---- *)
+  
+  (* Prod t t0 *)
+  - intros t IHA1 t0 IHA2 Γ B H_wfA H_wfB Herase.
+    destruct B as [B1 B2 | | ].
+    all: try (simpl in Herase; contradict Herase; congruence).
+    + simpl in Herase. inversion Herase. apply TypePiCong. apply prod_ty_inv in H_wfA. destruct H_wfA. auto.
+        ++ apply IHA1. apply prod_ty_inv in H_wfA,H_wfB. destruct H_wfA,H_wfB. auto. auto. inversion H_wfB. auto. auto.
+        ++ apply IHA2. apply prod_ty_inv in H_wfA,H_wfB. destruct H_wfA,H_wfB. auto. auto. inversion H_wfB. eapply conv_hypothesis_wftype.
+            instantiate (1:= B1). auto. apply TypeSym. apply IHA1. apply prod_ty_inv in H_wfA,H_wfB. destruct H_wfA,H_wfB. auto.
+            apply prod_ty_inv in H_wfA,H_wfB. destruct H_wfA,H_wfB. auto. auto. auto.
+    + simpl in Herase. apply erase_decode_inv_prod. auto. constructor.
+      apply prod_ty_inv in H_wfA. destruct H_wfA. auto. apply prod_ty_inv in H_wfA. destruct H_wfA. auto.
+      specialize (IHA1 Γ). exact IHA1.
+      specialize (IHA2 (Γ,,t)). exact IHA2. auto.
+
+  (* Decode l t *)
+  - intros. destruct B. (* A = Decode n a *)
+    + destruct a.
+        all: try(simpl in H0; contradict H0; congruence).
+        ++ apply TypeSym. apply erase_decode_inv_prod. constructor. all: try(auto).
+        ++ apply TypeSym. apply erase_decode_inv_prod. constructor. all: try(auto).
+    + simpl in H0. apply decode_ty_inv in H. apply erase_inj_term with (1:=t) (2:=H) in H0.
+        destruct H0.  destruct p. apply UInj in c0. rewrite c0. apply TypeDecodeCong. rewrite c0 in c. auto.
+        destruct s as [? [? [projT5 [projT6 [projT7 [? [? [? []]]]]]]]].
+        apply UInj in c; apply UInj in c0. symmetry in c; rewrite c in c1. symmetry in c0; rewrite c0 in c2. eapply TypeTrans. instantiate (1:= Decode n (cLift projT5 n projT6)).
+            apply TypeDecodeCong. auto. eapply TypeTrans. instantiate (1:=Decode l (cLift projT5 l projT7)).
+            eapply TypeTrans. instantiate (1:= Decode projT5 projT6). apply TypeSym; apply TypeDecodeLiftConv. 
+            ++ apply typing_defeq_inv in c1. destruct c1 as [? [? ]]. apply lift_inv in t2. destruct t2 as [? [? ]]. auto. 
+            ++ apply typing_defeq_inv in c1. destruct c1 as [? [? ]]. apply lift_inv in t2. destruct t2 as [? [? ]]. auto.
+            ++ eapply TypeTrans. instantiate (1:= Decode projT5 projT7). apply TypeDecodeCong. auto. apply TypeDecodeLiftConv.   
+                apply typing_defeq_inv in c2. destruct c2 as [? [? ]]. apply lift_inv in t2. destruct t2 as [? [? ]]. auto. 
+                apply typing_defeq_inv in c2. destruct c2 as [? [? ]]. apply lift_inv in t2. destruct t2 as [? [? ]]. auto.
+            ++ apply TypeDecodeCong. apply TermSym. auto. 
+
+  (* U n *)
+  - intros n Γ B H_wfA H_wfB Herase. destruct B.
+    all: try (simpl in Herase; contradict Herase; congruence).
+    + apply erase_decode_inv_univ; auto.
+    + simpl in Herase. inversion Herase. subst.
+      apply TypeRefl. exact H_wfA.
+
+  (* ----- erase_inj_term ----*)
+
+  (* var_term n *)
+  - intros n Γ u1 A0 A1 Htyp0 Htyp1 Herase. apply erase_var_inv. all:auto.
+
+(* Lambda t t0 u *)
+  - intros t IHA t0 IHB u IHu Γ u1 A0 A1 Htyp0 Htyp1 Herase. destruct u1 as [ | t1_0 t2 u_1 | | | | ].
+    all: try(simpl in Herase; contradict Herase; congruence).
+    ++ simpl in Herase. injection Herase; intros Heq_u Heq_t0 Heq_t.
         
-        eapply TypeTrans. 
-        2: { apply TypeSym. apply TypeDecodeProdConv; eauto. }
-        apply TypePiCong.
-        * exact Hwf_B1.
-        * apply IHB1; eauto. apply wfTypeDecode; eauto.
-        * apply IHB2; eauto.
-          --- eapply conv_hypothesis_wftype.
-            ++ apply wfTypeDecode; eauto.   
-            ++ apply TypeSym. apply IHB1; eauto. apply wfTypeDecode; eauto.             
-
-      +
-        apply decode_ty_inv in H. apply lift_inv in H as [Heql [Hlt Ht_inner]]. subst l0.
-        simpl in H1.
-        eapply TypeTrans.
-        * apply IHt; eauto. apply wfTypeDecode; eauto.
-        * apply TypeDecodeLiftConv; eauto.
-
-    -- simpl in H1. apply decode_ty_inv in H,H0. apply erase_inj_term with (1:=H0) (2:=H) in H1. destruct H1.
-      + destruct p. apply UInj in c0. subst l. apply TypeDecodeCong. auto.
-      + destruct s as [? [? [? [? [? [? [? [? []]]]]]]]]. apply UInj in c. apply UInj in c0. subst projT1 projT0.
+        apply lambda_inv in Htyp0. destruct Htyp0 as [Heq_A0 Htyp_u].
+        apply lambda_inv in Htyp1. destruct Htyp1 as [Heq_A1 Htyp_u1].
         
-        eapply TypeTrans.
-        * instantiate (1 := Decode l (cLift projT2 l projT3)).
-          apply TypeDecodeCong. exact c1.
-        * eapply TypeTrans.
-          --- instantiate (1 := Decode projT2 projT3).
-             apply TypeSym. apply TypeDecodeLiftConv.
-             ++ apply typing_defeq_inv in c3. destruct c3 as [_ [Hwf _]]. exact Hwf.
-             ++ apply typing_defeq_inv in c1. destruct c1 as [_ [_ Hwf]].
-                apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt.
-          --- eapply TypeTrans.
-             ++ instantiate (1 := Decode projT2 projT4).
-                apply TypeDecodeCong. exact c3.
-             ++ eapply TypeTrans.
-                ** instantiate (1 := Decode l0 (cLift projT2 l0 projT4)).
-                   apply TypeDecodeLiftConv.
-                   ---- apply typing_defeq_inv in c3. destruct c3 as [_ [_ Hwf]]. exact Hwf.
-                   ---- apply typing_defeq_inv in c2. destruct c2 as [_ [_ Hwf]].
-                       apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt.
-                ** apply TypeSym. apply TypeDecodeCong. exact c2.
+        apply wftype_typing_inv in Htyp_u. destruct Htyp_u as [Htyp_u Hwf_t0].
+        apply wftype_typing_inv in Htyp_u1. destruct Htyp_u1 as [Htyp_u1 Hwf_t2].
+        
+        apply wftype_hypothesis_inv in Hwf_t0. destruct Hwf_t0 as [Hwf_t Hwf_t0].
+        apply wftype_hypothesis_inv in Hwf_t2. destruct Hwf_t2 as [Hwf_t1_0 Hwf_t2].
+      
+        apply IHA with (1:=Hwf_t) (2:=Hwf_t1_0) in Heq_t. 
+        assert (Heq_t_copy := Heq_t). 
+        
+        assert (Htyp_u_conv := Htyp_u). apply conv_hypothesis_typing with (1:=Htyp_u_conv) in Heq_t.
+        
+        apply IHu with (1:=Heq_t) (2:=Htyp_u1) in Heq_u. destruct Heq_u as [ [Heq_u_conv Heq_t0_conv] | Right_u ].
+        
+        +++
+            assert (Heq_t_copy2 := Heq_t_copy).
+            apply conv_hypothesis_wftype with (1:=Hwf_t0) in Heq_t_copy.
+            apply IHB with (1:=Heq_t_copy) (2:=Hwf_t2) in Heq_t0.
+            
+            apply inl. split.
+            *** eapply TermConv. instantiate (1:=Prod t t0). eapply TermLambdaCong. auto. exact Heq_t_copy2. 
+                eapply conv_hypothesis_type_eq. instantiate (1:= t1_0). exact Heq_t0. apply TypeSym; exact Heq_t_copy2.
+                eapply conv_hypothesis_term_eq. instantiate (1:= t1_0). exact Heq_u_conv. apply TypeSym; exact Heq_t_copy2.
+                apply TypeSym. exact Heq_A0.
+            *** eapply TypeTrans. exact Heq_A0.
+                eapply TypeTrans. 2: { apply TypeSym. exact Heq_A1. }
+                apply TypePiCong. exact Hwf_t. exact Heq_t_copy2. 
+                eapply conv_hypothesis_type_eq. instantiate (1:= t1_0). exact Heq_t0. apply TypeSym; exact Heq_t_copy2.
+                
+        +++ (* cLift *)
+            destruct Right_u as [projT3 [projT4 [projT5 [projT6 [projT7 [ c1 [c2 [ c3 [c4 c5]]]]]]]]]. apply inl.
+            assert (Heq_t_copy2 := Heq_t_copy). apply conv_hypothesis_wftype with (1:=Hwf_t0) in Heq_t_copy.
+            apply IHB with (1:=Heq_t_copy) (2:=Hwf_t2) in Heq_t0.
+            
+            split.
+            *** eapply TermConv. instantiate (1:=Prod t t0). eapply TermLambdaCong. auto. exact Heq_t_copy2. 
+                eapply conv_hypothesis_type_eq. instantiate (1:= t1_0). exact Heq_t0. apply TypeSym; exact Heq_t_copy2.
+                eapply TermTrans. instantiate (1:= cLift projT5 projT3 projT6). 
+                eapply conv_hypothesis_term_eq. instantiate (1:= t1_0).  exact c3. apply TypeSym. exact Heq_t_copy2.
+                eapply TermTrans. instantiate (1:= cLift projT5 projT4 projT7). eapply TermConv. instantiate (1:= U projT3).
+                
+                assert (c1_copy := c1).
+                assert (c2_copy := c2).
+                apply TypeTrans with (1:=Heq_t0) in c2_copy.
+                apply TypeSym in c2_copy. apply TypeTrans with (1:= c2_copy) in c1_copy. apply UInj in c1_copy.
+                rewrite c1_copy. apply TermLiftingCong.
+                
+                eapply conv_hypothesis_term_eq. instantiate (1:=t1_0). exact c5. apply TypeSym; exact Heq_t_copy2.
+                apply typing_defeq_inv in c3. destruct c3 as [_ [_ Hwf_lift]].
+                assert (Hwf_lift_U : [Γ,, t1_0 |- cLift projT5 projT3 projT6 : U projT3]).
+                { eapply wfTermConv. exact Hwf_lift. exact c1. }
+                apply lift_inv in Hwf_lift_U. destruct Hwf_lift_U as [_ [Hlt _]]. exact Hlt.
+                
+                eapply conv_hypothesis_type_eq. instantiate (1:= t1_0). apply TypeSym; exact c1. apply TypeSym. exact Heq_t_copy2.
+                eapply conv_hypothesis_term_eq. instantiate (1:= t1_0).  apply TermSym. 
+                eapply TermConv. exact c4. apply TypeSym; exact Heq_t0. auto using TypeSym.  
+                apply TypeSym. exact Heq_A0.
+            *** eapply TypeTrans. exact Heq_A0.
+                eapply TypeTrans. 2: { apply TypeSym. exact Heq_A1. }
+                apply TypePiCong. exact Hwf_t. exact Heq_t_copy2. 
+                eapply conv_hypothesis_type_eq. instantiate (1:= t1_0). exact Heq_t0. auto. auto using TypeSym.
 
-    -- apply erase_decode_inv_univ; auto.
-Admitted.            
+    ++ simpl in Herase.
+        assert (Hbis := Htyp0). apply lambda_inv in Hbis; destruct Hbis. apply wfTermConv with (1:=Htyp0) in c.
+        apply inl.
+        eapply erase_lambda_inv with (1:= c) (2:= Htyp1) in Herase.  
+        
+        constructor. assert (Hbis := Htyp0). apply lambda_inv in Hbis; destruct Hbis.
+        eapply TermConv. instantiate (1:= Prod t t0). auto using TypeSym. auto using TypeSym. 
+        apply subject_red in Herase.
+        assert (Hbis := Htyp1). apply lift_inv_plus in Htyp1; destruct Htyp1 as [? [? [? []]]].
+        apply wfTermConv with (1:= Hbis) in c0. contradict Herase. intros. apply cohesion_prod_univ with (1:= Herase) (2:= c0). auto.
+        
+        intros C HC1 HC2 Heq. apply IHA. auto. auto. auto.
+        intros C HC1 HC2 Heq. apply IHB. auto. auto. auto.
+        intros Γ' u_1' A_1' Ht1_ Ht2_ Heq. apply IHu. auto. auto. auto.
+
+  (* App t t0 t1 t2 *)
+  - intros t IHA t0 IHB t1 IHf t2 IHa Γ u1 A0 A1 Htyp0 Htyp1 Herase.
+    apply erase_app_inv with (A:=t) (B:=t0) (f:=t1) (a:=t2); auto.
+
+  (* TODO: We didn't use injectivity of Pi ????*)
+
+  (* cProd l t t0 *)
+  - intros l t IHa t0 IHb Γ u1 A0 A1 Htyp0 Htyp1 Herase. apply erase_cprod_inv with (a:=t) (b:=t0) (l:=l); auto.
+
+
+(* cU k l *)
+  - intros k l Γ u1 A0 A1 Htyp0 Htyp1 Herase. destruct u1 as [ | | | | l0 l2 | ].
+    all: try(simpl in Herase; contradict Herase; congruence).
+    ++  simpl in Herase. injection Herase; intro H_k_l0. subst l0.
+        assert (Hbis:=Htyp0). apply code_univ_inv_bis in Hbis. destruct Hbis as [Heq_A0 Hlt_kl].
+        assert (H0bis:=Htyp1). apply code_univ_inv_bis in H0bis. destruct H0bis as [Heq_A1 Hlt_kl2].
+        apply inr. 
+        
+        eexists l, l2. set (l_min:=(Nat.min l l2)).
+        eexists l_min, (cU k l_min), (cU k l_min).
+        
+        split. { exact Heq_A0. }
+        split. { exact Heq_A1. }
+        split.
+        *** apply TermSym. eapply TermConv. instantiate (1:= U l).
+            apply conv_lift_univ_min_comm. 
+            apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto. auto. lia. auto using TypeSym.
+        *** split. 
+            **** apply TermSym. eapply TermConv. instantiate (1:= U l2).
+                 apply conv_lift_univ_min. 
+                 apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto. lia. lia. auto using TypeSym.
+            **** apply TermRefl. constructor. 
+                 apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto.
+                 apply inf_min. auto. lia.
+
+    ++ simpl in Herase. apply inr. eexists _, _. apply erase_cuniv_inv; eauto.
+
+  (* cLift k l t *)
+  - intros k l t IHt Γ u1 A0 A1 Htyp0 Htyp1 Herase. assert (Hbis:= Htyp0). apply lift_inv_plus in Hbis.
+    destruct Hbis as [n_lift [H_A0_Un [H_l_n [H_k_l H_t_Uk]]]].
+    apply IHt with (1:=H_t_Uk) (2:=Htyp1) in Herase. destruct Herase.
+    ++ destruct p as [c c0].
+            symmetry in H_l_n. rewrite H_l_n in H_A0_Un. 
+            
+            apply TypeSym in c0. 
+            apply inr.
+            
+            eexists l, k, k, t, u1.
+            
+            split. { exact H_A0_Un. }
+            split. { exact c0. }
+            split. { apply TermRefl. exact Htyp0. }
+            split. 
+            *** eapply TermConv. instantiate (1:= U k).
+                apply lift_same. 
+                eapply wfTermConv. exact Htyp1. exact c0.
+                apply TypeSym. exact c0.
+            *** exact c.
+    ++    destruct s as [l0_ih [l1_ih [k_ih [v0_ih [v1_ih [Hc_U [Hc_A1 [Hc_t [Hc_u1 Hc_v]]]]]]]]].
+          apply inr.
+          
+          apply UInj in Hc_U. subst l0_ih.
+          symmetry in H_l_n. subst n_lift.
+          
+          eexists l, l1_ih, k_ih, v0_ih, v1_ih.
+          
+          split. { exact H_A0_Un. }
+          split. { exact Hc_A1. }
+          split.
+          *** eapply TermConv. instantiate (1:= U l).
+              eapply TermTrans. 
+              instantiate (1:= cLift k l (cLift k_ih k v0_ih)).
+              ****  apply TermLiftingCong. exact Hc_t. auto.
+              ****  apply TermLiftingCumul.
+                    ---- apply typing_defeq_inv in Hc_v. destruct Hc_v as [_ [Hwf_v0 _]]. auto.
+                    ---- apply typing_defeq_inv in Hc_t. destruct Hc_t as [_ [_ Hwf_lift]].
+                        apply lift_inv in Hwf_lift. destruct Hwf_lift as [_ [Hlt _]]. exact Hlt.
+                    ---- exact H_k_l.
+              **** apply TypeSym. exact H_A0_Un.
+          *** split. 
+              **** exact Hc_u1.
+              **** exact Hc_v.
+Qed.
+
+
+
 
 Lemma erase_inj_term_plus {u0}:
     forall Γ u1 A0 A1,
