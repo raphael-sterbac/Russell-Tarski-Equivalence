@@ -452,7 +452,7 @@ Proof.
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
-Qed.  (* TODO : Decreasing argument *)
+Qed. 
 
 
 
