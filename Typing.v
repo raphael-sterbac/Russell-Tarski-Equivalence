@@ -50,7 +50,7 @@ with TypingDecl : ctx -> term -> ty -> Type :=
         [Γ |- cU m l : U l] 
     | wfTermcLift {Γ} {l m a} :
         [Γ |- a : U m] ->
-        (m<l) ->
+        (m<=l) ->
         [Γ |- cLift m l a : U l]
     | wfTermLambda {Γ} {A B t} :
         [ Γ |- A ] ->        
@@ -80,7 +80,7 @@ with ConvTypeDecl : ctx -> ty -> ty  -> Type :=
         [Γ |- U n = Decode m (cU n m)]
     | TypeDecodeLiftConv {Γ} (n: lvl) (m:lvl) (u:term) :
         [Γ |- u: U m] ->
-        (m < n) ->
+        (m <= n) ->
         [Γ |- Decode m u = Decode n (cLift m n u)]
     | TypeDecodeProdConv {Γ a b n}:
         [Γ |- a: U n] ->
@@ -123,22 +123,25 @@ with ConvTermDecl : ctx -> term -> term -> ty -> Type :=
     | TermLiftingProdConv {Γ a b n p}:
         [Γ |- a: U p] ->
         [Γ,, Decode p a |- b : U p ] ->
-        (p < n) ->
+        (p <= n) ->
         [Γ |- cLift p n (cProd p a b) = cProd n (cLift p n a) (cLift p n b) : U n]
     | TermLiftingUnivConv {Γ p n m}:
         [   |- Γ] ->
         m < n ->
-        n < p ->
+        n <= p ->
         [Γ |- cLift n p (cU m n) =  cU m p : U p]
     | TermLiftingCumul {Γ a n l p}:
         [Γ |- a : U n] ->
-        (n < p) ->
-        (p < l) ->
+        (n <= p) ->
+        (p <= l) ->
         [Γ |- cLift p l (cLift n p a) = cLift n l a : U l]
     | TermLiftingCong {Γ a b n p}:
         [Γ |- a = b: U n] ->
-        (n < p) ->
+        (n <= p) ->
         [Γ |- cLift n p a = cLift n p b : U p]
+    | TermLiftSame {u Γ l}:
+        [Γ |- u : U l] ->
+        [Γ |- u = cLift l l u : U l]
     | TermFunEta {Γ} {f A B} :
         [ Γ |- f : Prod A B ] ->
         [ Γ |- Lambda A B (App (weak_ty A) (weak_ty B) (weak_term f) (var_term 0)) = f : Prod A B ]
@@ -156,6 +159,7 @@ with ConvTermDecl : ctx -> term -> term -> ty -> Type :=
         [ Γ |- t = t' : A ] ->
         [ Γ |- t' = t'' : A ] ->
         [ Γ |- t = t'' : A ]
+
     
 where "[ Γ |- T ]" := (WfTypeDecl Γ T)
 and   "[ Γ |- t : T ]" := (TypingDecl Γ t T)

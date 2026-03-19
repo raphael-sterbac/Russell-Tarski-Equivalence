@@ -84,7 +84,9 @@ Proof.
   - intros. simpl. eapply r_wfTermConv. eapply r_wfVarN. assumption. simpl in H0. exact H0. apply erase_weak_ty.
   - intros. simpl. constructor; assumption.
   - intros. simpl. constructor. assumption. assumption.
-  - intros. simpl. apply r_wfTermCumul with (1:=l0). assumption.
+  - intros. simpl. destruct (Nat.eq_dec m l) as [H_eq | H_neq].
+    + subst. auto.
+    + assert (H_lt : m < l). lia. apply r_wfTermCumul with (1:=H_lt). assumption.  
   - intros. simpl. constructor; assumption.
   - intros. simpl. eapply r_wfTermConv. apply r_wfTermApp. assumption. assumption. apply erase_subst_ty.
   - intros. simpl. eapply r_wfTermConv. exact H. assumption.
@@ -103,11 +105,18 @@ Proof.
   - intros. simpl. eapply r_ConvConv. rewrite <- defeq_erase_subst_term. eapply r_TermBRed. auto. simpl in H0; auto. auto. apply erase_subst_ty.
   - intros. simpl. apply r_TermPiCong.  simpl in H; exact H.  simpl in H0; exact H0. simpl in H1; exact H1.
   - intros. simpl. eapply r_ConvConv. apply r_TermAppCong; assumption. apply erase_subst_ty.
-  - intros. simpl. apply r_TermLambdaCong; assumption.
-  - intros. simpl. eapply r_TermUnivCumul. instantiate (1:=p). apply r_TermRefl. apply r_wfTermProd. all: auto.
+  - intros. simpl. apply r_TermLambdaCong; assumption. 
+  - intros. simpl. destruct (Nat.eq_dec p n) as [H_eq | H_neq].
+    + subst. apply r_TermPiCong. auto. apply r_TermRefl. auto. apply r_TermRefl. auto.
+    + assert (H_lt : p < n). lia. eapply r_TermUnivCumul. instantiate (1:=p). apply r_TermRefl. apply r_wfTermProd. all: auto.
   - intros. simpl. apply r_TermRefl. apply r_wfTermUniv. auto. lia. 
-  - intros. simpl. apply r_TermRefl. eapply r_wfTermCumul. exact l1. eapply r_wfTermCumul. exact l0. simpl in H. exact H.
-  - intros. simpl. eapply r_TermUnivCumul. simpl in H. exact H. auto.
+  - intros. simpl. apply r_TermRefl. destruct (Nat.eq_dec n l) as [H_eq | H_neq].
+    + subst. auto.
+    + assert (H_lt: n < l). lia. eapply r_wfTermCumul. exact H_lt. auto.
+  - intros. simpl. destruct (Nat.eq_dec n p) as [H_eq | H_neq].
+    + subst. auto. 
+    + eapply r_TermUnivCumul. simpl in H. exact H. lia.
+  - intros. simpl. apply r_TermRefl. auto.
   - intros. simpl. 
     rewrite <- defeq_erase_weak_term.  
     rewrite <- defeq_erase_weak_ty. rewrite <- defeq_erase_weak_ty.

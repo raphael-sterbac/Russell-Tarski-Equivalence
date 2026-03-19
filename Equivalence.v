@@ -146,7 +146,7 @@ Proof.
         repeat split; auto.
         * 
           eapply TermConv. instantiate (1:= U k_t).
-          -- apply lift_same. eapply wfTermConv. exact Hvar. exact H_A_Ukt.
+          -- apply TermLiftSame. eapply wfTermConv. exact Hvar. exact H_A_Ukt.
           -- apply TypeSym. exact H_A_Ukt.
         * (* cLift k_t l_t t = cLift k_t l_t t *)
           apply TermRefl. exact Ht_orig.
@@ -330,7 +330,7 @@ Proof.
         repeat split; auto.
         *
           eapply TermConv. instantiate (1:= U k_t).
-        -- apply lift_same. eapply wfTermConv. exact H_App. exact H_A0_Ukt.
+        -- apply TermLiftSame. eapply wfTermConv. exact H_App. exact H_A0_Ukt.
           -- apply TypeSym. exact H_A0_Ukt.
         *
           apply TermRefl. exact Ht_orig.
@@ -482,18 +482,18 @@ Proof.
         { apply typing_defeq_inv in H_va_eq. destruct H_va_eq as [_ [Hwf _]]. exact Hwf. }
         assert (H_vb_U : [Γ ,, Decode l_ a |- vb : U kb]).
         { apply typing_defeq_inv in H_vb_eq. destruct H_vb_eq as [_ [Hwf _]]. exact Hwf. }
-        assert (H_ka_l : ka < l_).
+        assert (H_ka_l : ka <= l_).
         { apply typing_defeq_inv in H_a_lift. destruct H_a_lift as [_ [_ Hwf]]. apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt. }
-        assert (H_kb_l : kb < l_).
+        assert (H_kb_l : kb <= l_).
         { apply typing_defeq_inv in H_b_lift. destruct H_b_lift as [_ [_ Hwf]]. apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt. }
         
         assert (H_va'_U : [Γ |- va' : U ka]).
         { apply typing_defeq_inv in H_va_eq. destruct H_va_eq as [_ [_ Hwf]]. exact Hwf. }
         assert (H_vb'_U : [Γ ,, Decode l_ a |- vb' : U kb]).
         { apply typing_defeq_inv in H_vb_eq. destruct H_vb_eq as [_ [_ Hwf]]. exact Hwf. }
-        assert (H_ka_lt : ka < l_t).
+        assert (H_ka_lt : ka <= l_t).
         { apply typing_defeq_inv in H_t1_lift. destruct H_t1_lift as [_ [_ Hwf]]. apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt. }
-        assert (H_kb_lt : kb < l_t).
+        assert (H_kb_lt : kb <= l_t).
         { apply typing_defeq_inv in H_t2_lift. destruct H_t2_lift as [_ [_ Hwf]]. apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt. }
 
         destruct (lt_eq_lt_dec ka kb) as [[H_ka_lt_kb | H_ka_eq_kb] | H_kb_lt_ka].
@@ -507,7 +507,7 @@ Proof.
              { apply TypeDecodeCong. exact H_a_lift. }
              eapply TypeTrans. instantiate (1 := Decode ka va).
              { apply TypeSym. apply TypeDecodeLiftConv. exact H_va_U. exact H_ka_l. } 
-             { apply TypeDecodeLiftConv. exact H_va_U. exact H_ka_lt_kb. } 
+             { apply TypeDecodeLiftConv. exact H_va_U. lia. } 
            }
            
            assert (H_dec_kb' : [Γ |- Decode l_t t1 = Decode kb (cLift ka kb va')]).
@@ -515,7 +515,7 @@ Proof.
              { apply TypeDecodeCong. exact H_t1_lift. }
              eapply TypeTrans. instantiate (1 := Decode ka va').
              { apply TypeSym. apply TypeDecodeLiftConv. exact H_va'_U. exact H_ka_lt. } 
-             { apply TypeDecodeLiftConv. exact H_va'_U. exact H_ka_lt_kb. } 
+             { apply TypeDecodeLiftConv. exact H_va'_U. lia. } 
            }
 
            repeat split.
@@ -525,10 +525,10 @@ Proof.
               eapply TermConv. instantiate (1:= U l_).
               eapply TermTrans. 
               ** eapply TermPiCong. exact H_a_Ul. 
-                 *** eapply TermTrans. exact H_a_lift. apply TermSym. eapply TermLiftingCumul. exact H_va_U. exact H_ka_lt_kb. exact H_kb_l.
+                 *** eapply TermTrans. exact H_a_lift. apply TermSym. eapply TermLiftingCumul. exact H_va_U. instantiate(1:=kb). lia. exact H_kb_l.
                  *** exact H_b_lift.
               ** apply TermSym. apply TermLiftingProdConv.
-                 *** apply wfTermcLift. exact H_va_U. exact H_ka_lt_kb.
+                 *** apply wfTermcLift. exact H_va_U. lia.
                  *** eapply conv_hypothesis_typing. exact H_vb_U. exact H_dec_kb.
                  *** exact H_kb_l.
               ** apply TypeSym. exact H_A0_Ul.
@@ -536,18 +536,18 @@ Proof.
               eapply TermConv. instantiate (1:= U l_t).
               eapply TermTrans. 
               ** eapply TermPiCong. exact H_t1_Ult.
-                 *** eapply TermTrans. exact H_t1_lift. apply TermSym. eapply TermLiftingCumul. exact H_va'_U. exact H_ka_lt_kb. exact H_kb_lt.
+                 *** eapply TermTrans. exact H_t1_lift. apply TermSym. eapply TermLiftingCumul. exact H_va'_U. instantiate(1:=kb). lia. exact H_kb_lt.
                  *** eapply conv_hypothesis_term_eq. exact H_t2_lift. exact H_dec_eq.
               ** apply TermSym. apply TermLiftingProdConv.
-                 *** apply wfTermcLift. exact H_va'_U. exact H_ka_lt_kb.
+                 *** apply wfTermcLift. exact H_va'_U. lia.
                  *** eapply conv_hypothesis_typing. 2: { exact H_dec_kb'. }
                      eapply conv_hypothesis_typing. exact H_vb'_U. exact H_dec_eq.
                  *** exact H_kb_lt.
               ** apply TypeSym. exact H_A1_Ult.
            -- (* v0 = v1 : U kb *)
               apply TermPiCong. 
-              ** apply wfTermcLift. exact H_va_U. exact H_ka_lt_kb.
-              ** apply TermLiftingCong. exact H_va_eq. exact H_ka_lt_kb.
+              ** apply wfTermcLift. exact H_va_U. lia.
+              ** apply TermLiftingCong. exact H_va_eq. lia.
               ** eapply conv_hypothesis_term_eq. exact H_vb_eq. exact H_dec_kb.
 
         ++ (* ka = kb *)
@@ -614,10 +614,10 @@ Proof.
               eapply TermConv. instantiate (1:= U l_).
               eapply TermTrans. 
               ** eapply TermPiCong. exact H_a_Ul. exact H_a_lift.
-                 *** eapply TermTrans. exact H_b_lift. apply TermSym. eapply TermLiftingCumul. exact H_vb_U. exact H_kb_lt_ka. exact H_ka_l.
+                 *** eapply TermTrans. exact H_b_lift. apply TermSym. eapply TermLiftingCumul. exact H_vb_U. instantiate(1:=ka). lia. exact H_ka_l.
               ** apply TermSym. apply TermLiftingProdConv. exact H_va_U.
                  apply wfTermcLift. eapply conv_hypothesis_typing. exact H_vb_U. exact H_dec_ka.
-                 exact H_kb_lt_ka. exact H_ka_l.
+                 lia. exact H_ka_l.
               ** apply TypeSym. exact H_A0_Ul.
            -- (* t1 = cLift ka l_t (cProd ka va' (cLift kb ka vb')) *)
               eapply TermConv. instantiate (1:= U l_t).
@@ -625,16 +625,16 @@ Proof.
               ** eapply TermPiCong. exact H_t1_Ult. exact H_t1_lift.
                  *** eapply TermTrans. eapply conv_hypothesis_term_eq. exact H_t2_lift. exact H_dec_eq.
                      apply TermSym. eapply TermLiftingCumul. eapply conv_hypothesis_typing. exact H_vb'_U. exact H_dec_eq.
-                     exact H_kb_lt_ka. exact H_ka_lt.
+                     instantiate(1:=ka). lia. exact H_ka_lt.
               ** apply TermSym. apply TermLiftingProdConv. exact H_va'_U.
                  apply wfTermcLift. eapply conv_hypothesis_typing. 2: { exact H_dec_ka'. }
                  eapply conv_hypothesis_typing. exact H_vb'_U. exact H_dec_eq.
-                 exact H_kb_lt_ka. exact H_ka_lt.
+                 lia. exact H_ka_lt.
               ** apply TypeSym. exact H_A1_Ult.
            -- (* v0 = v1 : U ka *)
               apply TermPiCong. exact H_va_U. exact H_va_eq.
               apply TermLiftingCong. eapply conv_hypothesis_term_eq. exact H_vb_eq. exact H_dec_ka.
-              exact H_kb_lt_ka.
+              lia.
 
   - (* t = cLift k_t l_t t *)
     rename l into k_t. rename l0 into l_t.
@@ -657,7 +657,7 @@ Proof.
       eexists (cProd l_ a b). eexists t.
       repeat split; auto.
       * eapply TermConv. instantiate (1 := U l_).
-        -- apply lift_same. eapply wfTermConv. exact Hprod_orig. exact H_A0_Ul.
+        -- apply TermLiftSame. eapply wfTermConv. exact Hprod_orig. exact H_A0_Ul.
         -- apply TypeSym. exact H_A0_Ul.
       * apply TermRefl. eapply wfTermConv. eapply wfTermcLift; eauto. auto using TypeSym.
       * eapply TermConv. exact Heq_cProd. exact H_A0_Ul.
@@ -674,7 +674,7 @@ Proof.
       
       repeat split; auto.
       
-      assert (H_kin_kt : k_in < k_t).
+      assert (H_kin_kt : k_in <= k_t).
       { apply typing_defeq_inv in H_t'_lift. destruct H_t'_lift as [_ [_ Hwf]].
         apply lift_inv in Hwf. destruct Hwf as [_ [Hlt _]]. exact Hlt. }
 
@@ -711,7 +711,7 @@ Proof.
     apply UInj in c0.
     eexists K.  eexists (cU l K). eexists (cU l K). 
     constructor. auto. constructor. symmetry in e; rewrite e in c; auto. constructor.
-    apply TermSym. eapply TermConv. instantiate (1:=U l1). apply conv_lift_univ_min. apply inv_wfcontext_typing in t. destruct t. all: auto using TypeSym. 
+    apply TermSym. eapply TermConv. instantiate (1:=U l1). apply TermLiftingUnivConv. apply inv_wfcontext_typing in t. destruct t. all: auto using TypeSym. lia. lia. 
     constructor. eapply TermConv. instantiate (1:= U l2). rewrite c0. eapply TermTrans.
     instantiate (1:= cU l l2). apply TermLiftingUnivConv. apply inv_wfcontext_typing in t. destruct t. auto.
     auto. rewrite c0 in l3. auto. apply TermSym. apply TermLiftingUnivConv. apply inv_wfcontext_typing in t. destruct t. auto.
@@ -969,11 +969,11 @@ Proof.
          split. { exact Heq_A1. }
          split.
          *** apply TermSym. eapply TermConv. instantiate (1:= U l).
-             apply conv_lift_univ_min_comm. 
-             apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto. auto. lia. auto using TypeSym.
+             apply TermLiftingUnivConv.  
+             apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto. lia. lia. auto using TypeSym.
          *** split. 
              **** apply TermSym. eapply TermConv. instantiate (1:= U l2).
-                  apply conv_lift_univ_min. 
+                  apply TermLiftingUnivConv. 
                   apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto. lia. lia. auto using TypeSym.
              **** apply TermRefl. constructor. 
                   apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto.
@@ -1035,7 +1035,7 @@ Proof.
           split. { apply TermRefl. exact Htyp0. }
           split. 
           *** eapply TermConv. instantiate (1:= U k).
-              apply lift_same. 
+              apply TermLiftSame. 
               eapply wfTermConv. exact Htyp1. exact c0.
               apply TypeSym. exact c0.
           *** exact c.
@@ -1256,6 +1256,7 @@ Proof.
     apply TermLiftingProdConv; auto.
     + apply H0; auto. constructor. auto. constructor. auto. simpl. rewrite Heq. auto.
   
+  - econstructor. all: try(eauto).
   - econstructor. all: try(eauto).
   - econstructor. all: try(eauto).
   - econstructor. all: try(eauto).
@@ -1559,6 +1560,7 @@ Proof.
          --- apply wftype_typing_inv in Htyp; destruct Htyp; auto.
          --- apply wfTypeU. apply inv_wfcontext_typing in Htyp; destruct Htyp; auto.
          --- rewrite HerA. simpl. reflexivity.
+         --- lia. 
       -- simpl. auto.
       -- simpl. auto.
 
@@ -1572,21 +1574,14 @@ Proof.
     eexists Γ1, (Prod A1 C1), (Prod B1 D1).
     repeat split.
     * apply TypePiCong.
-      -- (* A1 doit être bien formé *)
-         apply type_defeq_inv in HconvA. destruct HconvA as [_ [HwfA _]]. exact HwfA.
-      -- (* A1 = B1 *)
-         exact HconvA.
-      -- (* C1 = D1 doit être valide dans Γ1,,A1. On l'a dans Γ2. *)
-         (* On utilise erase_inj_ctx_conv_ty car les contextes s'effacent de la même manière *)
-         eapply erase_inj_ctx_conv_ty.
-         --- (* Γ2 est bien formé (venant de la preuve de C1=D1) *)
-             apply type_defeq_inv in HconvC. destruct HconvC as [_ [HwfC _]]. apply inv_wfcontext_wftype in HwfC. destruct HwfC; exact w0.
-         --- (* Γ1,,A1 est bien formé *)
-             apply concons. 
+      -- apply type_defeq_inv in HconvA. destruct HconvA as [_ [HwfA _]]. exact HwfA.
+      -- exact HconvA.
+      -- eapply erase_inj_ctx_conv_ty.
+         --- apply type_defeq_inv in HconvC. destruct HconvC as [_ [HwfC _]]. apply inv_wfcontext_wftype in HwfC. destruct HwfC; exact w0.
+         --- apply concons. 
              apply type_defeq_inv in HconvA. destruct HconvA as [_ [_ HwfB1]]. apply inv_wfcontext_wftype in HwfB1. destruct HwfB1; auto.
              apply type_defeq_inv in HconvA. destruct HconvA as [_ [HwfA _]]. exact HwfA.
-         --- (* erase(Γ2) = Γ,,A = erase(Γ1,,A1) *)
-             simpl. rewrite HeG2 HeG1 HeA. reflexivity.
+         --- simpl. rewrite HeG2 HeG1 HeA. reflexivity.
          --- exact HconvC.
     * simpl. rewrite HeA HeC. reflexivity.
     * simpl. rewrite HeB HeD. reflexivity.
@@ -1918,7 +1913,7 @@ Proof.
         --- apply typing_defeq_inv in Hconv. destruct Hconv as [_ [_ Hwf]]. apply wftype_typing_inv in Hwf. destruct Hwf as [_ HwfT]. exact HwfT.
         --- apply wfTypeU. apply typing_defeq_inv in Hconv. destruct Hconv as [_ [_ Hwf]]. apply inv_wfcontext_typing in Hwf. destruct Hwf; auto.
         --- rewrite HeUp. simpl. reflexivity.
-        -- exact l.
+        -- lia.
     * simpl. auto.
     * simpl. auto.
     * simpl. auto.

@@ -6,7 +6,7 @@ Rocq formalization of a proof of equivalence between Russell and Tarski presenta
 
 In dependent type theory, cummulative universes have two common presentations. The Russell-style universes, where types and universes are mixed and coercions are implicit. The Tarski-style is a fully explicit presentation with decoding and lifting functions, which is essential to define Type Theory as a Generalised Algebraic Theory (GAT) and to provide rigorous semantics and models.
 
-The goal of this project is to provide a modular, algorithmic proof of equivalence between these two presentations for a theory featuring dependent products, cumulative universes, and judgmental $\beta\eta$ conversion.
+The goal of this project is to provide a modular, algorithmic proof of equivalence between these two presentations for a theory with dependent products, cumulative universes, and judgmental $\beta\eta$ conversion.
 
 ## Formalization Structure
 
@@ -24,7 +24,7 @@ The formalization is written in Rocq (`main.v`) and focuss on the erasure map fr
 The core of the formalisation is dedicated to proving that the erasure map has a well-defined inverse. We prove the two following essential results.
 
 **Uniqueness up to Erasure (Injectivity of Erasure)**
-If two judgments in the Tarski system erase to the exact same syntactic Russell terms, then they are provably convertible in the Tarski system. Rocq Lemmas: `erase_inj_ty` and `erase_inj_term`.
+If two judgments in the Tarski system erase to the same syntactic Russell terms, then they are provably convertible in the Tarski system. Rocq Lemmas: `erase_inj_ty` and `erase_inj_term`.
 
 **Equivalence (Section Theorem)**
 If a judgment holds in the Russell system, there exists a unique (up to conversion) corresponding judgment in the Tarski system that erases back to it. Rocq Theorems: `section_ctx`, `section_ty`, `section_term`, `section_conv`, and `section_conv_term`.

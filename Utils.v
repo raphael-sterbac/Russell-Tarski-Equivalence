@@ -44,12 +44,7 @@ Axiom weak_ty_prod: forall {A B},
      Prod (weak_ty A) (weak_ty B) = weak_ty (Prod A B).
 
 
-
 (* --- Normalisation Axioms ---*)
-
-Axiom PiInj: forall {Γ A B A' B'},
-    [Γ |- Prod A B = Prod A' B'] ->
-    [Γ |- A = A'] × [Γ |- B = B'].
 
 Axiom UInj: forall {Γ k l},
     [Γ |- U k = U l] ->
@@ -64,13 +59,6 @@ Axiom subject_red: forall {Γ a b A},
     [Γ |- a : A] ->
     [Γ |- a = b : A] ->
     [Γ |- b : A].
-
-
-(* To make the notation simpler in erase_inj_term *)
-Axiom lift_same: forall {u Γ l},
-    [Γ |- u : U l] ->
-    [Γ |- u = cLift l l u : U l].
-(*TODO :  Remplacer par vraie notation ? *)
 
 
 (* ----- Essential lemmas -----*)
@@ -144,10 +132,10 @@ with conv_hypothesis_term_eq {Γ A B a b C}:
     [Γ,,B |- a = b : C].
 Proof.
 
-(* 1. context_conversion_ctx *)
+(* context_conversion_ctx *)
 - intros Γ H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv.
-    + (* Nil *) destruct Δ0; inversion Heq.
-    + (* Cons *) destruct Δ0.
+    + destruct Δ0; inversion Heq.
+    + destruct Δ0.
       * 
         simpl in Heq. injection Heq. intros HeqG HeqA. subst.
         simpl. apply concons.
@@ -161,7 +149,7 @@ Proof.
         ** apply IHWfContextDecl with (Γ' := Γ'0) (A := A0) (B := B0) (Δ := Δ0); auto.
         ** apply context_conversion_ty with (Γ := (Δ0 ++ Γ'0,, A0)) (Γ' := Γ'0) (A := A0) (B := B0) (Δ := Δ0); auto.
 
-(* 2. context_conversion_ty *)
+(* context_conversion_ty *)
   - intros Γ T H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
     + (* U *) apply wfTypeU. eapply context_conversion_ctx; eauto.
     + (* Prod *) apply wfTypeProd.
@@ -169,7 +157,7 @@ Proof.
       * eapply IHWfTypeDecl2 with (Δ := Δ0 ,, A); eauto. simpl. reflexivity.
     + (* Decode *) apply wfTypeDecode. eapply context_conversion_term; eauto.
 
-  (* 3. context_conversion_term *)
+  (* context_conversion_term *)
   - intros Γ t T H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
     + (* wfVar0 *)
       rename A into T_declared.
@@ -220,7 +208,7 @@ Proof.
       * eapply IHTypingDecl; eauto.
       * eapply context_conversion_ty_eq; eauto.
 
-  (* 4. context_conversion_ty_eq *)
+  (* context_conversion_ty_eq *)
   - intros Γ T1 T2 H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
     + (* PiCong *) apply TypePiCong.
       * eapply context_conversion_ty; eauto.
@@ -236,7 +224,7 @@ Proof.
     + (* Trans *) eapply TypeTrans; eauto.
     + (* Sym *) apply TypeSym; eauto.
 
-  (* 5. context_conversion_term_eq *)
+  (* context_conversion_term_eq *)
   - intros Γ t1 t2 T H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
     + (* BRed *) eapply TermBRed.
       * eapply context_conversion_ty; eauto.
@@ -263,6 +251,7 @@ Proof.
     + (* LiftingUniv *) apply TermLiftingUnivConv; auto. eapply context_conversion_ctx; eauto.
     + (* LiftingCumul *) apply TermLiftingCumul; auto. eapply context_conversion_term; eauto.
     + (* LiftingCong *) apply TermLiftingCong; auto.
+    + (* TermLiftSame *) apply TermLiftSame. auto. eapply context_conversion_term; eauto.
     + (* FunEta *) apply TermFunEta. eapply context_conversion_term; eauto.
     + (* Refl *) apply TermRefl. eapply context_conversion_term; eauto.
     + (* Conv *) eapply TermConv.
@@ -271,7 +260,7 @@ Proof.
     + (* Sym *) apply TermSym; eauto.
     + (* Trans *) eapply TermTrans; eauto.
 
-  (* 6. type_defeq_inv *)
+  (* type_defeq_inv *)
   - intros. split.
     + auto.
     +
@@ -289,7 +278,7 @@ Proof.
         ** destruct IHConvTypeDecl1. destruct IHConvTypeDecl2. constructor. auto. auto.
         ** destruct IHConvTypeDecl. constructor. auto. auto.
 
-  (* 7. typing_defeq_inv *)
+  (* typing_defeq_inv *)
   - intros. split.
     + auto.
     + split.
@@ -304,6 +293,7 @@ Proof.
         ** apply wfTermcLift. apply wfTermcUniv. auto. auto. auto.
         ** apply wfTermcLift. apply wfTermcLift. auto. auto. auto.
         ** apply wfTermcLift. auto. auto.
+        ** auto.
         ** apply wftype_typing_inv in t. destruct t. inversion w. apply wfTermLambda.
                *** auto. 
                *** eapply wfTermConv.
@@ -318,7 +308,7 @@ Proof.
         ** apply IHConvTermDecl1.
       *
         induction H.
-        ** (* BRed: subst_term a t *)
+        ** (* BRed *)
            eapply substitution_lemma_term. eauto. auto.
         ** (* PiCong *)
            apply wfTermcProd.
@@ -350,6 +340,7 @@ Proof.
            apply wfTermcLift. auto. lia.
         ** (* LiftingCong *)
            apply wfTermcLift. auto. auto.
+        ** apply wfTermcLift. auto. auto.
         ** (* FunEta *)
            auto.
         ** auto.
@@ -357,7 +348,7 @@ Proof.
         ** eapply subject_red. instantiate (1:=t'). all: auto using TermSym.
         ** auto.
 
-(* 8. wftype_typing_inv *)
+(* wftype_typing_inv *)
   - intros. split.
     + exact H.
     + induction H.
@@ -384,7 +375,7 @@ Proof.
         apply type_defeq_inv in c. destruct c as [_ [_ HwfB]].
         exact HwfB.
 
-(* 9. wftype_hypothesis_inv *)
+(* wftype_hypothesis_inv *)
   - intros. 
     remember (Γ ,, A) as Γ' in H.
     dependent induction H; intros; subst; try discriminate.
@@ -408,7 +399,7 @@ Proof.
         eapply typing_hypothesis_inv in t. destruct t as [? []]. auto.
       * apply wfTypeDecode. assumption. 
 
-  (* 10. typing_hypothesis_inv *)
+  (* typing_hypothesis_inv *)
   - intros. split.
     + apply inv_wfcontext_typing in H. inversion H. inversion H1. auto.
     + split.
@@ -425,34 +416,34 @@ Proof.
       * 
         exact H.
 
-  (* 11. conv_hypothesis_wftype *)
+  (* conv_hypothesis_wftype *)
   - intros A B Hwf Hconv.
     eapply context_conversion_ty with (Δ := ε).
     + simpl. exact Hwf.
     + reflexivity.
     + exact Hconv.
 
-  (* 12. conv_hypothesis_typing *)
+  (* conv_hypothesis_typing *)
   - intros A B a Htyp Hconv.
     eapply context_conversion_term with (Δ := ε).
     + simpl. exact Htyp.
     + reflexivity.
     + exact Hconv.
 
-  (* 13. conv_hypothesis_type_eq *)
+  (* conv_hypothesis_type_eq *)
   - intros Heq Hconv.
     eapply context_conversion_ty_eq with (Δ := ε).
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
 
-  (* 14. conv_hypothesis_term_eq *)
+  (* conv_hypothesis_term_eq *)
   - intros  Heq Hconv.
     eapply context_conversion_term_eq with (Δ := ε).
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
-Qed. 
+Qed.
 
 
 
@@ -506,7 +497,7 @@ Qed.
 
 Lemma lift_inv_plus Γ k l A u:
     [Γ |- cLift k l u : A] ->
-    ∑ n, [Γ |- A = U n] × l = n × k < l × [Γ |- u : U k].
+    ∑ n, [Γ |- A = U n] × l = n × k <= l × [Γ |- u : U k].
 Proof.
     intros. dependent induction H.
     - eexists l. constructor. apply TypeRefl. constructor. apply inv_wfcontext_typing in H. destruct H. auto. constructor. auto. constructor. auto. auto.
@@ -516,7 +507,7 @@ Qed.
 
 Lemma lift_inv Γ k l n u:
     [Γ |- cLift k l u : U n] ->
-    l = n × k < l × [Γ |- u : U k].
+    l = n × k <= l × [Γ |- u : U k].
 Proof.
     intros.
     apply lift_inv_plus in H. destruct H as [? [? [? []]]]. apply UInj in c. constructor. rewrite e. auto. constructor. auto. auto.
@@ -758,51 +749,4 @@ Lemma inf_min {k l n}:
     n < Nat.min k l.
 Proof.
     intros. lia.
-Qed.
-
-
-(* Utilites using lift_same as a notation *)
-(*TODO : supprimer et remplacer par une vraie notation ? *)
-Lemma conv_lift_univ_min {Γ l l0 l1}:
-    [ |- Γ] ->
-    l < l0 ->
-    l < l1 ->
-    [Γ |- cLift (Nat.min l0 l1 ) l1 (cU l (Nat.min l0 l1)) = cU l l1 : U l1].
-Proof.
-    intros. destruct (lt_dec l0 l1) as [H_lt | H_ge].  
-    - rewrite Nat.min_l. lia. apply TermLiftingUnivConv. all: auto.
-    - rewrite Nat.min_r. lia. apply TermSym. apply lift_same. constructor. auto. auto.
-Qed.
-
-Lemma conv_lift_univ_min_comm {Γ l l0 l1}:
-    [ |- Γ] ->
-    l < l0 ->
-    l < l1 ->
-    [Γ |- cLift (Nat.min l1 l0 ) l1 (cU l (Nat.min l1 l0)) = cU l l1 : U l1].
-Proof.
-    intros. destruct (lt_dec l0 l1) as [H_lt | H_ge].  
-    - rewrite Nat.min_r. lia. apply TermLiftingUnivConv. all: auto.
-    - rewrite Nat.min_l. lia. apply TermSym. apply lift_same. constructor. auto. auto.
-Qed.
-
-Lemma conv_lift_cumul_max {Γ k l n0 u}:
-    [Γ |- u : U l] ->
-    n0 > k ->
-    n0 > l ->
-    [Γ |- cLift (Nat.max k l) n0 (cLift l (Nat.max k l) u) = cLift l n0 u : U n0].
-Proof.
-    intros. destruct (lt_dec l k) as [H_lt | H_ge].  
-    - rewrite Nat.max_l. lia. apply TermLiftingCumul. auto. lia. auto.
-    - rewrite Nat.max_r. lia. apply TermLiftingCong. apply TermSym. apply lift_same. auto. auto.
-Qed.
-
-Lemma conv_lift_cumul_max_comm {Γ k l n0 u}:
-    [Γ |- u : U l] ->
-    n0 > k ->
-    n0 > l ->
-    [Γ |- cLift (Nat.max l k) n0 (cLift l (Nat.max l k) u) = cLift l n0 u : U n0].
-Proof.
-     intros. destruct (lt_dec l k) as [H_lt | H_ge].  
-    - rewrite Nat.max_r. lia. apply TermLiftingCumul. auto. lia. auto.
-    - rewrite Nat.max_l. lia. apply TermLiftingCong. apply TermSym. apply lift_same. auto. auto.
 Qed.
