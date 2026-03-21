@@ -715,8 +715,8 @@ Proof.
     constructor. eapply TermConv. instantiate (1:= U l2). rewrite c0. eapply TermTrans.
     instantiate (1:= cU l l2). apply TermLiftingUnivConv. apply inv_wfcontext_typing in t. destruct t. auto.
     auto. rewrite c0 in l3. auto. apply TermSym. apply TermLiftingUnivConv. apply inv_wfcontext_typing in t. destruct t. auto.
-    apply inf_min. auto. auto. lia. rewrite e. auto using TypeSym. apply TermRefl. constructor. apply inv_wfcontext_typing in t. destruct t. auto.
-    apply inf_min. auto. auto.
+    lia. auto. auto. lia. rewrite e. auto using TypeSym. apply TermRefl. constructor. apply inv_wfcontext_typing in t. destruct t. auto.
+    lia. 
     
     - intros. simpl in H1. assert (H0bis:=H0). apply lift_inv_plus in H0bis. destruct H0bis as [? [? [? []]]].
     assert (t0bis:=t0). apply lift_inv_plus in t0bis. destruct t0bis as [? [? [? []]]].
@@ -977,7 +977,7 @@ Proof.
                   apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto. lia. lia. auto using TypeSym.
              **** apply TermRefl. constructor. 
                   apply inv_wfcontext_typing in Htyp0. destruct Htyp0. auto.
-                  apply inf_min. auto. lia.
+                  lia. 
 
       ++ simpl in Herase. apply inr. eexists _, _. apply erase_cuniv_inv; eauto.
 

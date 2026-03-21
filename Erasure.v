@@ -26,29 +26,110 @@ Fixpoint erase_context (Γ : ctx): russ_ctx :=
     | cons a Γ' => cons (erase_ty a) (erase_context Γ')
     end.
 
-Lemma product_wf_ty {Γ A B} : [Γ |-r A] -> [ Γ ,,r A |-r B ] -> [Γ |-r r_Prod A B].
+(* ----- Erasure of substitutions lemmas ----- *)
+
+Scheme ty_rect_mut_erase := Induction for ty Sort Type
+with term_rect_mut_erase := Induction for term Sort Type.
+
+Combined Scheme mut_ind_ty_term_erase from ty_rect_mut_erase, term_rect_mut_erase.
+
+Lemma defeq_erase_weak_mutual :
+  (forall A, r_weak_term (erase_ty A) = erase_ty (weak_ty A)) *
+  (forall t, r_weak_term (erase_term t) = erase_term (weak_term t)).
 Proof.
-    intros. inversion H. inversion H0. symmetry in H3.
-        eapply r_wfTypeUniv. instantiate (1:=Nat.max (n+1) (n0+1)). constructor. eapply r_wfTermUniv.
-            auto. lia. eapply r_wfTermUniv. constructor. auto. rewrite H3 in H. auto. lia. 
-        eapply r_wfTypeUniv. instantiate (1:=Nat.max (n+1) (n0+1)). constructor. eapply r_wfTermUniv.
-            auto. lia. eapply r_wfTermCumul. instantiate (1:=n0). lia. symmetry in H3. rewrite H3 in H4. auto.
-        inversion H0. eapply r_wfTypeUniv. instantiate (1:=Nat.max (n+1) (n0+1)). constructor. eapply r_wfTermCumul.
-            instantiate (1:=n). lia. auto. eapply r_wfTermUniv. auto. lia.
-        eapply r_wfTypeUniv. instantiate (1:=Nat.max (n+1) (n0+1)). constructor. eapply r_wfTermCumul.
-            instantiate (1:=n). lia. auto. eapply r_wfTermCumul. instantiate (1:=n0). lia. auto.    
+  apply mut_ind_ty_term_erase; intros.
+  
+  - rewrite <- weak_ty_prod. simpl. 
+    rewrite r_weak_term_Prod.
+    rewrite H H0. auto.
+  - rewrite weak_ty_Decode. simpl.
+    rewrite H. auto.
+  - rewrite weak_ty_U. simpl. 
+    apply r_weak_term_U.
+  
+
+  - rewrite weak_term_var. simpl. 
+    apply defeq_weak_var.
+  - rewrite weak_term_Lambda. simpl.
+    rewrite r_weak_term_Lambda.
+    rewrite H H0 H1. auto.
+  - rewrite weak_term_App. simpl.
+    rewrite r_weak_term_App.
+    rewrite H H0 H1 H2. auto.
+  - rewrite weak_term_cProd. simpl.
+    rewrite r_weak_term_Prod.
+    rewrite H H0. auto.
+  - rewrite weak_term_cU. simpl. 
+    apply r_weak_term_U.
+  - rewrite weak_term_cLift. simpl.
+    apply H.
 Qed.
 
-(* ----- Erasure of substitutions lemma, as axioms ----- *)
+Lemma defeq_erase_weak_ty : forall {A}, r_weak_term (erase_ty A) = erase_ty (weak_ty A).
+Proof.
+  intros A. apply (fst defeq_erase_weak_mutual).
+Qed.
 
-Axiom defeq_erase_weak_ty: forall {A}, r_weak_term (erase_ty A) = erase_ty (weak_ty A).
-Axiom defeq_erase_weak_term: forall {A}, r_weak_term (erase_term A) = erase_term (weak_term A).
-Axiom defeq_erase_subst_ty: forall {a A}, r_subst_term (erase_term a) (erase_ty A) = erase_ty (subst_ty a A).
-Axiom defeq_erase_subst_term: forall {a t}, r_subst_term (erase_term a) (erase_term t) = erase_term (subst_term a t).
-Axiom erase_weak_ty: forall {Γ A}, [Γ |-r r_weak_term (erase_ty A) = erase_ty (weak_ty A) ].
-Axiom erase_subst_ty: forall {Γ a A}, [Γ |-r r_subst_term (erase_term a) (erase_ty A) = erase_ty (subst_ty a A) ].
-Axiom erase_subst_term: forall {Γ a t B}, [Γ |-r r_subst_term (erase_term a) (erase_term t) = erase_term (subst_term a t) : B].
+Lemma defeq_erase_weak_term : forall {t}, r_weak_term (erase_term t) = erase_term (weak_term t).
+Proof.
+  intros t. apply (snd defeq_erase_weak_mutual).
+Qed.
 
+Lemma defeq_erase_subst_mutual :
+  (forall A a, r_subst_term (erase_term a) (erase_ty A) = erase_ty (subst_ty a A)) *
+  (forall t a, r_subst_term (erase_term a) (erase_term t) = erase_term (subst_term a t)).
+Proof.
+  apply mut_ind_ty_term_erase; intros.
+  
+  - rewrite subst_ty_Prod. simpl. 
+    rewrite r_subst_term_Prod.
+    rewrite H. 
+    rewrite defeq_erase_weak_term. 
+    rewrite H0. 
+    reflexivity.
+  - rewrite subst_ty_Decode. simpl.
+    rewrite H. reflexivity.
+  - rewrite subst_ty_U. simpl. 
+    apply r_subst_term_U.
+  
+  - destruct n.
+    + rewrite subst_term_var_0. simpl. 
+      rewrite r_subst_term_var_0. reflexivity.
+    + rewrite subst_term_var_S. simpl. 
+      rewrite r_subst_term_var_S. reflexivity.
+  - rewrite subst_term_Lambda. simpl.
+    rewrite r_subst_term_Lambda.
+    rewrite H.
+    rewrite defeq_erase_weak_term.
+    rewrite H0 H1.
+    reflexivity.
+  - rewrite subst_term_App. simpl.
+    rewrite r_subst_term_App.
+    rewrite H H1 H2.
+    rewrite defeq_erase_weak_term.
+    rewrite H0.
+    reflexivity.
+  - rewrite subst_term_cProd. simpl.
+    rewrite r_subst_term_Prod.
+    rewrite H.
+    rewrite defeq_erase_weak_term.
+    rewrite H0.
+    reflexivity.
+  - rewrite subst_term_cU. simpl. 
+    apply r_subst_term_U.
+  - rewrite subst_term_cLift. simpl.
+    apply H.
+Qed.
+
+Lemma defeq_erase_subst_ty : forall {a A}, r_subst_term (erase_term a) (erase_ty A) = erase_ty (subst_ty a A).
+Proof.
+  intros a A. apply (fst defeq_erase_subst_mutual).
+Qed.
+
+Lemma defeq_erase_subst_term : forall {a t}, r_subst_term (erase_term a) (erase_term t) = erase_term (subst_term a t).
+Proof.
+  intros a t. apply (snd defeq_erase_subst_mutual).
+Qed.
 
 (* Correction of erasure  *)
 
@@ -80,15 +161,19 @@ Proof.
   - intros. simpl. eapply r_wfTypeUniv. simpl in H. exact H.
 
   (* TypingDecl *)
-  - intros. simpl. eapply r_wfTermConv. apply r_wfVar0. assumption. apply erase_weak_ty.
-  - intros. simpl. eapply r_wfTermConv. eapply r_wfVarN. assumption. simpl in H0. exact H0. apply erase_weak_ty.
+  - intros. simpl. eapply r_wfTermConv. apply r_wfVar0. assumption. rewrite <- defeq_erase_weak_ty. apply r_TypeRefl.
+    eapply r_weak_lemma. auto.
+  - intros. simpl. eapply r_wfTermConv. eapply r_wfVarN. assumption. simpl in H0. exact H0. rewrite <- defeq_erase_weak_ty. apply r_TypeRefl.
+    eapply r_weak_lemma. auto.
   - intros. simpl. constructor; assumption.
   - intros. simpl. constructor. assumption. assumption.
   - intros. simpl. destruct (Nat.eq_dec m l) as [H_eq | H_neq].
     + subst. auto.
     + assert (H_lt : m < l). lia. apply r_wfTermCumul with (1:=H_lt). assumption.  
   - intros. simpl. constructor; assumption.
-  - intros. simpl. eapply r_wfTermConv. apply r_wfTermApp. assumption. assumption. apply erase_subst_ty.
+  - intros. simpl. eapply r_wfTermConv. apply r_wfTermApp. assumption. assumption. rewrite <- defeq_erase_subst_ty. apply r_TypeRefl.
+    eapply r_substitution_lemma. apply r_wftype_typing_inv in H. destruct H.
+    simpl in r0. apply r_prod_ty_inv in r0. destruct r0. exact r1. exact H0.
   - intros. simpl. eapply r_wfTermConv. exact H. assumption.
 
   (* -ConvTypeDecl*)
@@ -102,9 +187,12 @@ Proof.
   - intros. simpl. apply r_TypeSym. assumption.
 
   (* ConvTermDecl *)
-  - intros. simpl. eapply r_ConvConv. rewrite <- defeq_erase_subst_term. eapply r_TermBRed. auto. simpl in H0; auto. auto. apply erase_subst_ty.
+  - intros. simpl. eapply r_ConvConv. rewrite <- defeq_erase_subst_term. eapply r_TermBRed. auto. simpl in H0; auto. auto. rewrite <- defeq_erase_subst_ty. apply r_TypeRefl.
+    eapply r_substitution_lemma. apply r_wftype_typing_inv in H0. destruct H0. simpl in r0. exact r0. exact H1.
   - intros. simpl. apply r_TermPiCong.  simpl in H; exact H.  simpl in H0; exact H0. simpl in H1; exact H1.
-  - intros. simpl. eapply r_ConvConv. apply r_TermAppCong; assumption. apply erase_subst_ty.
+  - intros. simpl. eapply r_ConvConv. apply r_TermAppCong; assumption. rewrite <- defeq_erase_subst_ty. apply r_TypeRefl.
+    eapply r_substitution_lemma. apply r_type_defeq_inv in H0. destruct H0 as [? []].
+    simpl in r0. exact r0. apply r_typing_defeq_inv in H2. destruct H2 as [? []]. auto. 
   - intros. simpl. apply r_TermLambdaCong; assumption. 
   - intros. simpl. destruct (Nat.eq_dec p n) as [H_eq | H_neq].
     + subst. apply r_TermPiCong. auto. apply r_TermRefl. auto. apply r_TermRefl. auto.
