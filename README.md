@@ -21,7 +21,7 @@ The formalization is written in Rocq (`main.v`) and focuss on the erasure map fr
 
 ### Main Theorems
 
-The core of the formalisation is dedicated to proving that the erasure map has a well-defined inverse. We prove the two following essential results.
+We prove the two following essential results.
 
 **Uniqueness up to Erasure (Injectivity of Erasure)**
 If two judgments in the Tarski system erase to the same syntactic Russell terms, then they are provably convertible in the Tarski system. Rocq Lemmas: `erase_inj_ty` and `erase_inj_term`.
@@ -31,7 +31,7 @@ If a judgment holds in the Russell system, there exists a unique (up to conversi
 
 ## Axioms and Assumptions
 
-As outlined in the abstract, the equivalence proof fundamentally relies on the normalisation and injectivity of type constructors for the Tarski-style theory. While normalisation can be proven via an adaptation of the gluing technique, this specific Rocq formalization takes normalisation and injectivity of type formers (such as `PiInj` and `UInj`) as axioms to focus purely on the equivalence algorithms.
+As outlined in the abstract, the equivalence proof fundamentally relies on the normalisation and injectivity of type constructors for the Tarski-style theory. While normalisation can be proven via an adaptation of the gluing technique, this formalization takes normalisation and injectivity of type formers (such as `PiInj` and `UInj`) as axioms to focus purely on the equivalence proofs.
 
 At the moment, the formalisation also puts all the subsitution and weakening lemmas as axioms. It would be great to recover them from a tool such as AutoSubst, to obtain a fully self-contained proof.
 

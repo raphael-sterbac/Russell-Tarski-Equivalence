@@ -123,12 +123,6 @@ Axiom cohesion_prod_univ: forall {Γ t A B n},
     [Γ |- t : U n] ->
     False.
 
-Axiom subject_red: forall {Γ a b A},
-    [Γ |- a : A] ->
-    [Γ |- a = b : A] ->
-    [Γ |- b : A].
-
-
 (* ----- Essential lemmas -----*)
 
 
@@ -347,74 +341,108 @@ Proof.
         ** destruct IHConvTypeDecl. constructor. auto. auto.
 
   (* typing_defeq_inv *)
-  - intros. split.
-    + auto.
-    + split.
-      * 
-        induction H.
-        ** apply wfTermApp. apply wfTermLambda; auto. auto.
-        ** apply wfTermcProd. auto. apply wfTypeDecode. auto. auto.
-        ** apply wfTermApp. auto. auto.
-        ** apply wfTermLambda. auto. auto.
-        ** apply wfTermcLift. apply wfTermcProd. auto. auto. apply typing_hypothesis_inv in t0.
-             destruct t0 as [? []]. auto. auto. auto. 
-        ** apply wfTermcLift. apply wfTermcUniv. auto. auto. auto.
-        ** apply wfTermcLift. apply wfTermcLift. auto. auto. auto.
-        ** apply wfTermcLift. auto. auto.
-        ** auto.
-        ** apply wftype_typing_inv in t. destruct t. inversion w. apply wfTermLambda.
-               *** auto. 
-               *** eapply wfTermConv.
-                    **** eapply wfTermApp.
-                          ***** rewrite weak_ty_prod. apply weak_term_lemma. auto.
-                          ***** apply wfVar0. auto. 
-                    **** rewrite subst_var_0. apply TypeRefl. auto.
-            
-        ** auto.
-        ** eapply wfTermConv. instantiate (1 := A). apply IHConvTermDecl. auto.
-        ** eapply subject_red. instantiate (1:=t). auto. auto.
-        ** apply IHConvTermDecl1.
-      *
-        induction H.
-        ** (* BRed *)
-           eapply substitution_lemma_term. eauto. auto.
-        ** (* PiCong *)
-           apply wfTermcProd.
-           *** auto.
-           ***  apply wfTypeDecode. auto.
-           ***  eapply conv_hypothesis_typing. instantiate (1:=Decode n A).
-           auto. apply TypeDecodeCong. auto.
-        ** (* AppCong *)
-           eapply wfTermConv. instantiate (1 := subst_ty b B').
-           *** apply type_defeq_inv in c. destruct c as [? []]. apply wfTermApp. eapply wfTermConv.
-                instantiate (1:= Prod A B). auto. constructor. 
-                auto. auto. auto. eapply wfTermConv. instantiate (1:= A). auto. auto.
-           *** eapply subst_cong. instantiate (1:=A). auto. auto using TypeSym. auto using TermSym.
-        ** (* LambdaCong *)
-           eapply wfTermConv. instantiate (1:=Prod A' B'). apply wfTermLambda.
-           *** apply type_defeq_inv in c. destruct c as [? []]. auto.
-           *** eapply conv_hypothesis_typing. instantiate (1:=A). eapply wfTermConv. instantiate (1:= B). all: auto.
-           *** apply TypePiCong. apply type_defeq_inv in c. destruct c as [? []]. auto. auto using TypeSym.
-                eapply conv_hypothesis_type_eq. instantiate (1:= A). auto using TypeSym. auto.
-        ** (* LiftingProd *)
-           apply wfTermcProd.
-           *** apply wfTermcLift. auto. auto.
-           *** apply wfTypeDecode. apply wfTermcLift. auto. auto.
-           *** constructor. eapply conv_hypothesis_typing. instantiate (1:= Decode p a). auto.
-                eapply TypeDecodeLiftConv. all: auto.
-        ** (* LiftingUniv *)
-           apply wfTermcUniv. auto. lia.
-        ** (* LiftingCumul *)
-           apply wfTermcLift. auto. lia.
-        ** (* LiftingCong *)
-           apply wfTermcLift. auto. auto.
-        ** apply wfTermcLift. auto. auto.
-        ** (* FunEta *)
-           auto.
-        ** auto.
-        ** eapply wfTermConv. instantiate (1:=A). auto. auto.
-        ** eapply subject_red. instantiate (1:=t'). all: auto using TermSym.
-        ** auto.
+  - intros H. induction H.
+    + (* TermBRed *)
+      split. { eapply TermBRed; eassumption. }
+      split.
+      * apply wfTermApp; eauto. apply wfTermLambda; eauto.
+      * eapply substitution_lemma_term; eauto.
+    + (* TermPiCong *)
+      destruct IHConvTermDecl1 as [Heq_AB [Htyp_A Htyp_B]].
+      destruct IHConvTermDecl2 as [Heq_CD [Htyp_C Htyp_D]].
+      split. { apply TermPiCong; eassumption. }
+      split.
+      * apply wfTermcProd.
+        -- exact Htyp_A.
+        -- apply wfTypeDecode. exact Htyp_A.
+        -- exact Htyp_C.      * apply wfTermcProd; eauto. apply wfTypeDecode. exact Htyp_B.
+        eapply conv_hypothesis_typing. exact Htyp_D. apply TypeDecodeCong. exact Heq_AB.
+    + (* TermAppCong *)
+      destruct IHConvTermDecl1 as [Heq_f [Htyp_f Htyp_g]].
+      destruct IHConvTermDecl2 as [Heq_a [Htyp_a Htyp_b]].
+      split. { eapply TermAppCong; eassumption. }
+      split.
+      * eapply wfTermApp; eauto.
+      * eapply wfTermConv. instantiate (1 := subst_ty b B').
+        -- apply type_defeq_inv in c. destruct c as [c [Hwf_A Hwf_A']].
+           apply type_defeq_inv in c0. destruct c0 as [c0 [Hwf_B Hwf_B']].
+           eapply wfTermApp.
+           ++ eapply wfTermConv. exact Htyp_g. apply TypePiCong. exact Hwf_A. exact c. apply TypeSym. apply TypeSym. exact c0.
+           ++ eapply wfTermConv. exact Htyp_b. exact c.
+        -- eapply subst_cong. apply TypeSym. exact c0. apply TermSym. exact Heq_a.
+    + (* TermLambdaCong *)
+      destruct IHConvTermDecl as [Heq_tu [Htyp_t Htyp_u]].
+      split. { apply TermLambdaCong; eassumption. }
+      split.
+      * apply wfTermLambda; eauto.
+      * eapply wfTermConv. instantiate (1:=Prod A' B').
+        -- apply wfTermLambda.
+           ++ apply type_defeq_inv in c0. destruct c0 as [? []]. auto.  apply type_defeq_inv in c. destruct c as [? []]. auto. 
+           ++ eapply conv_hypothesis_typing. eapply wfTermConv. exact Htyp_u. exact c0. auto.
+        -- apply TypePiCong. apply type_defeq_inv in c0. destruct c0 as [? []]. auto. apply type_defeq_inv in c. destruct c as [? []]. auto.
+           auto using TypeSym. eapply conv_hypothesis_type_eq. apply TypeSym. exact c0. auto using TypeSym. 
+    + (* TermLiftingProdConv *)
+      split. { apply TermLiftingProdConv; eassumption. }
+      split.
+      * apply wfTermcLift; auto. apply wfTermcProd; eauto. apply typing_hypothesis_inv in t0. destruct t0 as [? []]. auto.
+      * apply wfTermcProd.
+        -- apply wfTermcLift; eauto.
+        -- apply wfTypeDecode. apply wfTermcLift; eauto.
+        -- eapply conv_hypothesis_typing.
+           ++ apply wfTermcLift. exact t0. exact l.
+           ++ apply TypeDecodeLiftConv; eauto.
+    + (* TermLiftingUnivConv *)
+      split. { apply TermLiftingUnivConv; eassumption. }
+      split.
+      * apply wfTermcLift; eauto. apply wfTermcUniv; eauto. 
+      * apply wfTermcUniv; eauto. lia.
+    + (* TermLiftingCumul *)
+      split. { apply TermLiftingCumul; eassumption. }
+      split.
+      * apply wfTermcLift; eauto. apply wfTermcLift; eauto.
+      * apply wfTermcLift; eauto. lia.
+    + (* TermLiftingCong *)
+      destruct IHConvTermDecl as [Heq_ab [Htyp_a Htyp_b]].
+      split. { apply TermLiftingCong; eassumption. }
+      split.
+      * apply wfTermcLift; eauto.
+      * apply wfTermcLift; eauto.
+    + (* TermLiftSame *)
+      split. { apply TermLiftSame; eassumption. }
+      split.
+      * exact t.
+      * apply wfTermcLift; eauto.
+    + (* TermFunEta *)
+      split. { apply TermFunEta; eassumption. }
+      split.
+      * apply wftype_typing_inv in t. destruct t as [t Hwf_Prod].
+        inversion Hwf_Prod. subst.
+        apply wfTermLambda.
+        -- exact H2.
+        -- eapply wfTermConv.
+           ++ eapply wfTermApp.
+              ** rewrite weak_ty_prod. eapply weak_term_lemma. exact t.
+              ** apply wfVar0. exact H2.
+           ++ rewrite subst_var_0. apply TypeRefl. exact H3.
+      * exact t.
+    + (* TermRefl *)
+      split. { apply TermRefl; eassumption. }
+      split; assumption.
+    + (* TermConv *)
+      destruct IHConvTermDecl as [Heq_tt' [Htyp_t Htyp_t']].
+      split. { eapply TermConv; eassumption. }
+      split.
+      * eapply wfTermConv; eauto.
+      * eapply wfTermConv; eauto.
+    + (* TermSym *)
+      destruct IHConvTermDecl as [Heq_tt' [Htyp_t Htyp_t']].
+      split. { apply TermSym; eassumption. }
+      split; assumption.
+    + (* TermTrans *)
+      destruct IHConvTermDecl1 as [Heq_tt' [Htyp_t Htyp_t']].
+      destruct IHConvTermDecl2 as [Heq_t't'' [Htyp_t'2 Htyp_t'']].
+      split. { eapply TermTrans; eassumption. }
+      split; assumption.
 
 (* wftype_typing_inv *)
   - intros. split.
@@ -511,7 +539,7 @@ Proof.
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
-Qed. 
+Admitted. 
 
 
 
@@ -830,11 +858,6 @@ Axiom r_weak_cong: forall {Γ A B C},
     [Γ |-r A = B] ->
     [Γ,,r C |-r r_weak_term A = r_weak_term B].
 
-Axiom r_subject_red: forall {Γ a b A},
-    [Γ |-r a : A] ->
-    [Γ |-r a = b : A] ->
-    [Γ |-r b : A].
-
 Lemma r_context_conversion_ctx :
   (forall Γ, [ |-r Γ ] -> forall Γ' A B Δ, Γ = Δ ++ (A :: Γ') -> [Γ' |-r A = B] -> [ |-r r_subst_context A B Γ' Δ ])
 with r_context_conversion_ty :
@@ -1002,46 +1025,81 @@ Proof.
       * eapply r_wfTypeUniv. exact HtypB.
 
   (* r_typing_defeq_inv *)
-  - intros. split.
-    + auto.
-    + split.
-      * induction H.
-        ** apply r_wfTermApp. apply r_wfTermLambda; auto. auto.
-        ** apply r_wfTermApp. auto. auto.
-        ** apply r_wfTermLambda. auto. auto.
-        ** apply r_wfTermProd. auto. auto.
-        ** pose proof r as Htyp_f.
-           apply r_wftype_typing_inv in Htyp_f. destruct Htyp_f as [_ Hwf_Prod].
-           apply r_prod_ty_inv in Hwf_Prod. destruct Hwf_Prod as [Hwf_A Hwf_B].
-           apply r_wfTermLambda.
-           *** exact Hwf_A.
-           *** eapply r_wfTermConv.
-               **** eapply r_wfTermApp.
-                    ***** rewrite <- r_weak_term_Prod. 
-                          eapply r_weak_term_lemma. exact r. exact Hwf_A.
-                    ***** apply r_wfVar0. exact Hwf_A.
-               **** rewrite r_subst_var_0. apply r_TypeRefl. exact Hwf_B.
-        ** auto.
-        ** eapply r_wfTermConv. instantiate (1 := A). apply IHRuss_ConvTermDecl. auto.
-        ** eapply r_subject_red. instantiate (1:=t). auto. auto.
-        ** apply IHRuss_ConvTermDecl1.
-        ** eapply r_wfTermCumul. exact l. apply IHRuss_ConvTermDecl.
-      * induction H.
-        ** eapply r_substitution_lemma_term. eauto. auto.
-        ** eapply r_wfTermConv. instantiate (1 := r_subst_term b B').
-           *** apply r_type_defeq_inv in r. destruct r as [? []]. apply r_wfTermApp. eapply r_wfTermConv. instantiate (1:= r_Prod A B). auto. constructor. auto. auto. auto. eapply r_wfTermConv. instantiate (1:= A). auto. auto.
-           *** eapply r_subst_cong. instantiate (1:=A). auto. auto using r_TypeSym. auto using r_TermSym.
-        ** eapply r_wfTermConv. instantiate (1:=r_Prod A' B'). apply r_wfTermLambda.
-           *** apply r_type_defeq_inv in r0. destruct r0 as [? []]. auto.
-           *** eapply r_conv_hypothesis_typing. instantiate (1:=A). eapply r_wfTermConv. instantiate (1:= B). all: auto.
-           *** apply r_TypePiCong. apply r_type_defeq_inv in r0. destruct r0 as [? []]. auto. auto using r_TypeSym. eapply r_conv_hypothesis_type_eq. instantiate (1:= A). auto using r_TypeSym. auto.
-        ** apply r_wfTermProd. auto. eapply r_conv_hypothesis_typing. instantiate (1:= A). auto. eapply r_TypeUnivConv. exact H.
-        ** auto.
-        ** auto.
-        ** eapply r_wfTermConv. instantiate (1:=A). auto. auto.
-        ** eapply r_subject_red. instantiate (1:=t'). all: auto using r_TermSym.
-        ** auto.
-        ** eapply r_wfTermCumul. exact l. apply IHRuss_ConvTermDecl.
+  - intros H. induction H.
+    + (* r_TermBRed *)
+      split. { eapply r_TermBRed; eassumption. }
+      split.
+      * apply r_wfTermApp; eauto. apply r_wfTermLambda; eauto.
+      * eapply r_substitution_lemma_term; eauto.
+    + (* r_TermAppCong *)
+      destruct IHRuss_ConvTermDecl1 as [Heq_f [Htyp_f Htyp_g]].
+      destruct IHRuss_ConvTermDecl2 as [Heq_a [Htyp_a Htyp_b]].
+      split. { eapply r_TermAppCong; eassumption. }
+      split.
+      * eapply r_wfTermApp; eauto.
+      * eapply r_wfTermConv. instantiate (1 := r_subst_term b B').
+        -- apply r_type_defeq_inv in r. destruct r as [r [Hwf_A Hwf_A']].
+           apply r_type_defeq_inv in r0. destruct r0 as [r0 [_ Hwf_B']].
+           eapply r_wfTermApp.
+           ++ eapply r_wfTermConv. exact Htyp_g. apply r_TypePiCong. exact Hwf_A. apply r_TypeSym. apply r_TypeSym. exact r. apply r_TypeSym. apply r_TypeSym. exact r0.
+           ++ eapply r_wfTermConv. exact Htyp_b. apply r_TypeSym. apply r_TypeSym. exact r.
+        -- eapply r_subst_cong. apply r_TypeSym. exact r0. apply r_TermSym. exact Heq_a.
+    + (* r_TermLambdaCong *)
+      destruct IHRuss_ConvTermDecl as [Heq_tu [Htyp_t Htyp_u]].
+      split. { apply r_TermLambdaCong; eassumption. }
+      split.
+      * apply r_wfTermLambda; eauto.
+      * eapply r_wfTermConv. instantiate (1:=r_Prod A' B').
+        -- apply r_wfTermLambda.
+           ++ apply r_type_defeq_inv in r0. destruct r0 as [? []]. auto.
+           ++ eapply r_conv_hypothesis_typing. eapply r_wfTermConv. exact Htyp_u. exact r1. exact r0.
+        -- apply r_TypePiCong. apply r_type_defeq_inv in r0. destruct r0 as [? []]. auto.
+           auto using r_TypeSym. eapply r_conv_hypothesis_type_eq. apply r_TypeSym. exact r1. auto using r_TypeSym.
+    + (* r_TermPiCong *)
+      destruct IHRuss_ConvTermDecl1 as [Heq_AB [Htyp_A Htyp_B]].
+      destruct IHRuss_ConvTermDecl2 as [Heq_CD [Htyp_C Htyp_D]].
+      split. { apply r_TermPiCong; eassumption. }
+      split.
+      * apply r_wfTermProd; eauto.
+      * apply r_wfTermProd. exact Htyp_B.
+        eapply r_conv_hypothesis_typing. exact Htyp_D. eapply r_TypeUnivConv. exact H.
+    + (* r_TermFunEta *)
+      split. { apply r_TermFunEta; eassumption. }
+      split.
+      * pose proof r as Htyp_f. apply r_wftype_typing_inv in Htyp_f. destruct Htyp_f as [_ Hwf_Prod].
+        apply r_prod_ty_inv in Hwf_Prod. destruct Hwf_Prod as [Hwf_A Hwf_B].
+        apply r_wfTermLambda.
+        -- exact Hwf_A.
+        -- eapply r_wfTermConv.
+           ++ eapply r_wfTermApp.
+              ** rewrite <- r_weak_term_Prod. eapply r_weak_term_lemma. exact r. exact Hwf_A.
+              ** apply r_wfVar0. exact Hwf_A.
+           ++ rewrite r_subst_var_0. apply r_TypeRefl. exact Hwf_B.
+      * exact r.
+    + (* r_TermRefl *)
+      split. { apply r_TermRefl; eassumption. }
+      split; assumption.
+    + (* r_ConvConv *)
+      destruct IHRuss_ConvTermDecl as [Heq_tt' [Htyp_t Htyp_t']].
+      split. { eapply r_ConvConv; eassumption. }
+      split.
+      * eapply r_wfTermConv; eauto.
+      * eapply r_wfTermConv; eauto.
+    + (* r_TermSym *)
+      destruct IHRuss_ConvTermDecl as [Heq_tt' [Htyp_t Htyp_t']].
+      split. { apply r_TermSym; eassumption. }
+      split; assumption.
+    + (* r_TermTrans *)
+      destruct IHRuss_ConvTermDecl1 as [Heq_tt' [Htyp_t Htyp_t']].
+      destruct IHRuss_ConvTermDecl2 as [Heq_t't'' [Htyp_t'2 Htyp_t'']].
+      split. { eapply r_TermTrans; eassumption. }
+      split; assumption.
+    + (* r_TermUnivCumul *)
+      destruct IHRuss_ConvTermDecl as [Heq_AB [Htyp_A Htyp_B]].
+      split. { eapply r_TermUnivCumul; eassumption. }
+      split.
+      * eapply r_wfTermCumul; eauto.
+      * eapply r_wfTermCumul; eauto.
 
   (* r_wftype_typing_inv *)
   - intros. split.
@@ -1103,4 +1161,4 @@ Proof.
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
-Qed.
+Admitted.

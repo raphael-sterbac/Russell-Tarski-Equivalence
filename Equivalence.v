@@ -199,9 +199,19 @@ Proof.
                 +++ destruct p. auto.
                 +++  destruct s as [? [? [? [? [? [? [? [? []]]]]]]]]. apply simplify_induction with (1:= c1) (2:= c2) (3:= c3) (4 := c4) (5:= c5) (6:= H7).
             ++ apply TypeSym in H6. apply conv_hypothesis_wftype with (1:= w4) in H6. auto.
-        + intros. simpl in H4. eapply IHt in H4. all: auto. contradict H4; intros. apply subject_red in H4.
-            apply lift_inv_plus in H0; destruct H0 as [? [? [? []]]]. apply cohesion_prod_univ with (1:= H4) in t0.
-            auto. apply typing_defeq_inv in H4. auto. instantiate (1:= U l). apply lift_inv_plus in H0; destruct H0 as [? [? [? []]]]. auto.     
+        + intros. simpl in H4.
+          exfalso.
+          apply lift_inv_plus in H0. 
+          destruct H0 as [n_lift [Heq_A1 [Hl_n [Hk_l Htyp_inner]]]].
+        
+          eapply IHt in H4; eauto.
+          
+          apply typing_defeq_inv in H4. 
+          destruct H4 as [_ [_ Htyp_inner_prod]].
+          
+          eapply cohesion_prod_univ.
+          * exact Htyp_inner_prod.
+          * exact Htyp_inner.     
 Qed.
 
 Lemma erase_app_inv {Γ t}:
@@ -901,20 +911,23 @@ Proof.
             apply TypePiCong. exact Hwf_t. exact Heq_t. 
             eapply conv_hypothesis_type_eq. instantiate (1:= t1_0). exact Heq_t0. apply TypeSym; exact Heq_t.
 
-    ++ simpl in Herase.
-        assert (Hbis := Htyp0). apply lambda_inv in Hbis; destruct Hbis. apply wfTermConv with (1:=Htyp0) in c.
-        apply inl.
-        eapply erase_lambda_inv with (1:= c) (2:= Htyp1) in Herase.  
-        
-        constructor. assert (Hbis := Htyp0). apply lambda_inv in Hbis; destruct Hbis.
-        eapply TermConv. instantiate (1:= Prod t t0). auto using TypeSym. auto using TypeSym. 
-        apply subject_red in Herase.
-        assert (Hbis := Htyp1). apply lift_inv_plus in Htyp1; destruct Htyp1 as [? [? [? []]]].
-        apply wfTermConv with (1:= Hbis) in c0. contradict Herase. intros. apply cohesion_prod_univ with (1:= Herase) (2:= c0). auto.
-        
-        intros C HC1 HC2 Heq. apply IHA. auto. auto. auto.
-        intros C HC1 HC2 Heq. apply IHB. auto. auto. auto.
-        intros Γ' u_1' A_1' Ht1_ Ht2_ Heq. apply IHu. auto. auto. auto.
+      ++ simpl in Herase.
+       exfalso.
+       assert (Hbis := Htyp0).
+       apply lambda_inv in Hbis; destruct Hbis. apply wfTermConv with (1:=Htyp0) in c.
+       
+       eapply erase_lambda_inv with (1:= c) (2:= Htyp1) in Herase.
+       
+       -- apply typing_defeq_inv in Herase. destruct Herase as [_ [_ Htyp_u1_prod]].
+          assert (Hbis := Htyp1). apply lift_inv_plus in Htyp1; destruct Htyp1 as [n_lift [Heq_A1_Un _]].
+          
+          eapply cohesion_prod_univ.
+          ** exact Htyp_u1_prod.
+          ** eapply wfTermConv. exact Hbis. exact Heq_A1_Un.
+          
+       -- intros C HC1 HC2 Heq. apply IHA; auto.
+       -- intros C HC1 HC2 Heq. apply IHB; auto.
+       -- intros Γ' u_1' A_1' Ht1_ Ht2_ Heq. apply IHu; auto.
 
     (* erase_decode_inv *)
     + intros Γ u1 B Hterm Htyp Herase. assert (H:=Hterm). apply lambda_inv in Hterm. destruct Hterm.
