@@ -8,64 +8,218 @@ Require Import RussellTarskiEquivalence.Typing.
 
 (* --------- Axioms --------- *)
 
-(* --------- Axioms --------- *)
-
 (* --- Substitutions and weakenings --- *)
 
-Axiom substitution_lemma :
-    forall {Γ A B a},
-    [ Γ ,, A |- B ] ->
-    [ Γ |- a : A ] ->
-    [ Γ |- B[a..] ].
+Scheme wf_ctx_rect_mut := Induction for WfContextDecl Sort Type
+with wf_ty_rect_mut := Induction for WfTypeDecl Sort Type
+with typing_rect_mut := Induction for TypingDecl Sort Type
+with conv_ty_rect_mut := Induction for ConvTypeDecl Sort Type
+with conv_term_rect_mut := Induction for ConvTermDecl Sort Type.
 
-Axiom substitution_lemma_term: forall {Γ A B a t},
-    [ Γ ,, A |- t: B ] ->
-    [ Γ |- a : A ] ->
-    [ Γ |- t[a..] : B[a..]].
+Combined Scheme mut_ind_typing from 
+  wf_ctx_rect_mut, wf_ty_rect_mut, typing_rect_mut, conv_ty_rect_mut, conv_term_rect_mut.
 
-Axiom r_substitution_lemma: forall {Γ a A B},
-    [ Γ ,,r A |-r B ] ->
-    [ Γ |-r a : A ] ->
-    [ Γ |-r B[a..] ].
+Fixpoint ren_ctx (Γ Δ : ctx) (xi : nat -> nat) : Type :=
+  match Γ with
+  | nil => True
+  | A :: Γ' => ren_ctx Γ' Δ (shift >> xi) × [Δ |- var_term (xi 0) : A⟨shift >> xi⟩]
+  end.
 
-Axiom r_substitution_lemma_term: forall {Γ a t A B},
-    [ Γ ,,r A |-r t : B ] ->
-    [ Γ |-r a : A ] ->
-    [ Γ |-r t[a..] : B[a..] ].
+Lemma ren_ctx_ext : forall Γ Δ xi zeta,
+  (forall x, xi x = zeta x) ->
+  ren_ctx Γ Δ xi ->
+  ren_ctx Γ Δ zeta.
+Proof.
+  induction Γ as [| A Γ']; intros Δ xi zeta Heq Hren.
+  - exact I.
+  - simpl in *. destruct Hren as [Htail Hhead].
+    split.
+    + apply IHΓ' with (xi := shift >> xi).
+      * intro x. exact (Heq (S x)).
+      * exact Htail.
+    + rewrite <- (Heq 0).
+      assert (HeqA : A⟨shift >> xi⟩ = A⟨shift >> zeta⟩).
+      { apply extRen_ty. intro x. exact (Heq (S x)). }
+      rewrite <- HeqA. exact Hhead.
+Qed.
 
-Axiom subst_cong: forall {Γ A B B' a a'},
-    [ Γ ,, A |- B = B' ] ->
-    [ Γ |- a = a' : A ] ->
-    [ Γ |- B[a..] = B'[a'..] ].
+Lemma weak_ren_ctx : forall Γ Δ xi B,
+  ren_ctx Γ Δ xi ->
+  [Δ |- B] ->
+  ren_ctx Γ (Δ ,, B) (xi >> shift).
+Proof.
+  induction Γ as [| A Γ']; intros Δ xi B Hren HwfB.
+  - exact I.
+  - simpl in *. destruct Hren as [Htail Hhead].
+    split.
+    + assert (Heq : shift >> (xi >> shift) = (shift >> xi) >> shift) by reflexivity.
+      rewrite Heq. apply IHΓ'; assumption.
+    + assert (Heqn : var_term ((xi >> shift) 0) = var_term (S (xi 0))) by reflexivity.
+      rewrite Heqn.
+      assert (HeqA : A⟨shift >> (xi >> shift)⟩ = A⟨shift >> xi⟩⟨↑⟩).
+      { by asimpl. }
+      rewrite HeqA.
+      apply wfVarN; assumption.
+Qed.
 
-Axiom r_subst_cong: forall {Γ A B B' a a'},
-    [ Γ ,,r A |-r B = B' ] ->
-    [ Γ |-r a = a' : A ] ->
-    [ Γ |-r B[a..] = B'[a'..] ].
+Lemma up_ren_ctx : forall Γ Δ xi A,
+  [Δ |- A⟨xi⟩] ->
+  ren_ctx Γ Δ xi ->
+  ren_ctx (Γ ,, A) (Δ ,, A⟨xi⟩) (up_ren xi).
+Proof.
+  intros Γ Δ xi A HwfA Hren.
+  simpl. split.
+  - apply ren_ctx_ext with (xi := xi >> shift).
+    + intros x. asimpl. reflexivity.
+    + apply weak_ren_ctx; assumption.
+  - assert (Heq : var_term (up_ren xi 0) = var_term 0) by reflexivity.
+    assert (HeqA : A⟨shift >> up_ren xi⟩ = A⟨xi⟩⟨↑⟩).
+    { by asimpl. }
+    rewrite HeqA.
+    apply wfVar0. exact HwfA.
+Qed.
 
-Axiom weak_lemma: forall {Γ A B},
-    [ Γ |- A] ->
-    [ Γ,,A |- B⟨↑⟩ ].
+Lemma ren_ctx_id : forall Γ, [|- Γ] -> ren_ctx Γ Γ id.
+Proof.
+  induction Γ as [| A Γ']; intros Hwf.
+  - exact I.
+  - inversion Hwf; subst. simpl. split.
+    + apply ren_ctx_ext with (xi := id >> shift).
+      * intro x. cbn. reflexivity.
+      * apply weak_ren_ctx.
+        -- apply IHΓ'. exact H1.
+        -- exact H2.
+    + assert (HeqA : A⟨shift >> id⟩ = A⟨↑⟩).
+      { apply extRen_ty. intro x. cbn. reflexivity. }
+      rewrite HeqA. 
+      apply wfVar0. exact H2.
+Qed.
 
-Axiom r_weak_lemma: forall {Γ A B},
-    [ Γ |-r A] ->
-    [ Γ,,r A |-r B⟨↑⟩ ].
+Lemma ren_ctx_shift : forall Γ B,
+  [|- Γ] -> [Γ |- B] -> ren_ctx Γ (Γ ,, B) shift.
+Proof.
+  intros Γ B HwfΓ HwfB.
+  apply ren_ctx_ext with (xi := id >> shift).
+  - intro x; reflexivity.
+  - apply weak_ren_ctx.
+    + apply ren_ctx_id. exact HwfΓ.
+    + exact HwfB.
+Qed.
 
-Axiom weak_cong: forall {Γ A B C},
-    [Γ |- A = B] ->
-    [Γ,, C |- A⟨↑⟩ = B⟨↑⟩].
 
-Axiom r_weak_cong: forall {Γ A B C},
-    [Γ |-r A = B] ->
-    [Γ,,r C |-r A⟨↑⟩ = B⟨↑⟩].
+Lemma renaming_mutual :
+  (forall Γ (H : [ |- Γ ]), unit) *
+  (
+    (forall Γ A (H : [ Γ |- A ]) Δ xi, ren_ctx Γ Δ xi -> [ |- Δ ] -> [ Δ |- A⟨xi⟩ ]) *
+    (
+      (forall Γ a A (H : [ Γ |- a : A ]) Δ xi, ren_ctx Γ Δ xi -> [ |- Δ ] -> [ Δ |- a⟨xi⟩ : A⟨xi⟩ ]) *
+      (
+        (forall Γ A B (H : [ Γ |- A = B ]) Δ xi, ren_ctx Γ Δ xi -> [ |- Δ ] -> [ Δ |- A⟨xi⟩ = B⟨xi⟩ ]) *
+        (forall Γ a b A (H : [ Γ |- a = b : A ]) Δ xi, ren_ctx Γ Δ xi -> [ |- Δ ] -> [ Δ |- a⟨xi⟩ = b⟨xi⟩ : A⟨xi⟩ ])
+      )
+    )
+  ).
+Proof.
+  apply mut_ind_typing.
+  - exact.
+  - intros. exact.
+  - intros. asimpl. apply wfTypeU. auto.
+  - intros. asimpl. apply wfTypeProd. apply X. auto. auto. apply X0. apply up_ren_ctx. asimpl. apply X. all: auto.
+    apply concons. auto. auto.
+  - intros. asimpl. apply wfTypeDecode. apply X. auto. auto.
+  
+  (* TODO: Finir la preuve,*)
+Admitted.
 
-Axiom weak_term_lemma: forall {Γ a A B},
-    [Γ |- a : A] ->
-    [Γ,, B |- a⟨↑⟩ : A⟨↑⟩].
+Lemma weak_term_lemma : forall Γ a A B,
+  [Γ |- a : A] ->
+  [Γ |- B] ->
+  [Γ ,, B |- a⟨↑⟩ : A⟨↑⟩].
+Proof.
+  intros Γ a A B Htyp HwfB.
+  
 
-Axiom r_weak_term_lemma: forall {Γ a A B},
-    [Γ |-r a : A] ->
-    [Γ,,r B |-r a⟨↑⟩ : A⟨↑⟩].
+
+  pose proof (inv_wfcontext_typing _ _ _ Htyp) as [_ HwfΓ].
+  apply (fst (snd (snd renaming_mutual))) with (Γ := Γ).
+  - exact Htyp.
+  - apply ren_ctx_shift; assumption.
+  - apply concons; assumption.
+Qed.
+
+
+Fixpoint subst_ctx (Γ Δ : ctx) (sigma : nat -> term) : Prop :=
+  match Γ with
+  | nil => True
+  | A :: Γ' => subst_ctx Γ' Δ (shift >> sigma) /\ [Δ |- sigma 0 : A[shift >> sigma]]
+  end.
+
+Lemma subst_ctx_ext : forall Γ Δ sigma tau,
+  (forall x, sigma x = tau x) ->
+  subst_ctx Γ Δ sigma ->
+  subst_ctx Γ Δ tau.
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma tau Heq Hsubst.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply IHΓ' with (sigma := shift >> sigma).
+      * intro x. exact (Heq (S x)).
+      * exact Htail.
+    + rewrite <- (Heq 0).
+      assert (HeqA : A[shift >> sigma] = A[shift >> tau]).
+      { apply ext_ty. intro x. exact (Heq (S x)). }
+      rewrite <- HeqA. exact Hhead.
+Qed.
+
+Lemma weak_subst_ctx : forall Γ Δ sigma B,
+  subst_ctx Γ Δ sigma ->
+  [Δ |- B] ->
+  subst_ctx Γ (Δ ,, B) (sigma >> shift).
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma B Hsubst HwfB.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + assert (Heq : shift >> (sigma >> shift) = (shift >> sigma) >> shift) by reflexivity.
+      rewrite Heq. apply IHΓ'; assumption.
+    + assert (Heq : (sigma >> shift) 0 = (sigma 0)⟨↑⟩) by reflexivity.
+      rewrite Heq.
+      assert (HeqA : A[shift >> (sigma >> shift)] = A[shift >> sigma]⟨↑⟩).
+      { asimpl. reflexivity. }
+      rewrite HeqA.
+      eapply weak_term_lemma; assumption.
+Qed.
+
+Lemma up_subst_ctx : forall Γ Δ sigma A,
+  [Δ |- A[sigma]] ->
+  subst_ctx Γ Δ sigma ->
+  subst_ctx (Γ ,, A) (Δ ,, A[sigma]) (up_term_term sigma).
+Proof.
+  intros Γ Δ sigma A HwfA Hsubst.
+  simpl. split.
+  - apply subst_ctx_ext with (sigma := sigma >> shift).
+    + intros x. asimpl. reflexivity.
+    + apply weak_subst_ctx; assumption.
+  - assert (Heq : up_term_term sigma 0 = var_term 0) by reflexivity.
+    rewrite Heq.
+    assert (HeqA : A[shift >> up_term_term sigma] = A[sigma]⟨↑⟩).
+    { asimpl. reflexivity. }
+    rewrite HeqA.
+    apply wfVar0. exact HwfA.
+Qed.
+
+Lemma substitution_mutual :
+  (forall Γ (H : [ |- Γ ]), True) *
+  (forall Γ A (H : [ Γ |- A ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- A[sigma] ]) *
+  (forall Γ a A (H : [ Γ |- a : A ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- a[sigma] : A[sigma] ]) *
+  (forall Γ A B (H : [ Γ |- A = B ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- A[sigma] = B[sigma] ]) *
+  (forall Γ a b A (H : [ Γ |- a = b : A ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- a[sigma] = b[sigma] : A[sigma] ]).
+Proof.
+  apply mut_ind_typing; intros; cbn.
+Admitted.
+
+(* --- Properties of the syntax : Injectivity and no-confusion --- *)
 
 Axiom UInj: forall {Γ k l},
     [Γ |- U k = U l] ->
