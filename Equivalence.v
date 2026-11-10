@@ -296,6 +296,7 @@ Proof.
           apply inl. split.
           -- eapply TermConv. 
              ++ apply TermAppCong.
+                ** exact HwfA.
                 ** exact HeqA.
                 ** exact HeqB.
                 ** exact Heq_f_conv.
@@ -310,8 +311,9 @@ Proof.
           assert (Heq_a_conv : [Γ |- a = t4 : A]).
           { eapply simplify_induction_grouped. exact Right_a. apply TypeRefl. exact HwfA. }
           apply inl. split.
-          -- eapply TermConv.
+          -- eapply TermConv. 
              ++ apply TermAppCong.
+                ** exact HwfA.
                 ** exact HeqA.
                 ** exact HeqB.
                 ** exact Heq_f_conv.
@@ -1176,7 +1178,7 @@ Proof.
     { apply erase_inj_ty. apply H with (1:=H2); auto. auto. auto. }
     eapply wfTermConv.
     + apply wfVar0. exact H3.
-    + apply TypeSym. apply weak_cong. exact Heq_types.
+    + apply TypeSym. apply weak_cong. exact Heq_types. exact H3.
 
   - (* wfVarN *)
     destruct Γ' as [|A' Γ']; simpl in Heq; try discriminate.
@@ -1186,7 +1188,7 @@ Proof.
     + exact H4.
     + apply H0; auto.
 
-    - (* wfTermcProd *)
+  - (* wfTermcProd *)
     apply wfTermcProd.
     + apply H; auto.
     + apply H0; auto.
@@ -1194,8 +1196,8 @@ Proof.
       * constructor. apply HwfG'. apply wfTypeDecode. apply H; auto.
       * simpl. rewrite Heq. auto.
 
-    - econstructor. eauto. eauto.
-    - econstructor. eauto. eauto.
+  - econstructor. eauto. eauto.
+  - econstructor. eauto. eauto.
 
   - (* wfTermLambda *)
     apply wfTermLambda.
@@ -1203,20 +1205,27 @@ Proof.
     + apply H0.
       * constructor. apply HwfG'. apply H; auto.
       * simpl. rewrite Heq. reflexivity.
+    + apply H1.
+      * constructor. apply HwfG'. apply H; auto.
+      * simpl. rewrite Heq. reflexivity.
 
-    - econstructor. eauto. eauto.
-  - econstructor. eauto. eauto.
-  - econstructor. eauto. eauto.
-    assert (Heq' : erase_context (Γ,,A) = erase_context (Γ',,A)).
-    {simpl. rewrite Heq. auto. }
-    apply H1. econstructor. eauto. eauto. eauto.
+  - (* wfTermApp *)
+    apply wfTermApp.
+    + apply H; auto.
+    + apply H0.
+      * constructor. apply HwfG'. apply H; auto.
+      * simpl. rewrite Heq. reflexivity.
+    + apply H1; auto.
+    + apply H2; auto.
 
+  - econstructor. eauto. eauto.
+  - econstructor. eauto. eauto. apply H1. constructor. auto. auto. simpl. rewrite Heq. reflexivity.
   - econstructor. eauto.
-  - econstructor. eauto. eauto.
-  - econstructor. eauto. eauto.
+  - econstructor. auto. auto.
+  - econstructor. auto. auto.
 
   - (* TypeDecodeProdConv*)
-    apply TypeDecodeProdConv.
+    apply TypeDecodeProdConv .
     + apply H; auto.
     + apply H0.
       * constructor. apply HwfG'. apply wfTypeDecode. apply H; auto.
@@ -1243,8 +1252,15 @@ Proof.
       * constructor. apply HwfG'. apply wfTypeDecode. apply H; auto.
       * simpl. rewrite Heq. auto.
 
-  - econstructor. eauto. apply H0. econstructor. eauto. eapply type_defeq_inv. apply TypeSym. eapply H.
-    eauto. eauto. simpl. rewrite Heq. eauto. eauto. eauto.
+  - (* TermAppCong *)
+    apply TermAppCong.
+    + apply H; auto.
+    + apply H0; auto.
+    + apply H1.
+      * constructor. apply HwfG'. apply H; auto.
+      * simpl. rewrite Heq. reflexivity.
+    + apply H2; auto.
+    + apply H3; auto.
 
   - (* TermLambdaCong *)
     apply TermLambdaCong.
@@ -1405,11 +1421,16 @@ Proof.
         constructor. symmetry in e. rewrite e. rewrite defeq_erase_weak_ty. auto.
         constructor. auto. simpl. rewrite e0. rewrite e. auto.
 
-      (* r_VarN *)
-    +  destruct IHRuss_TypingDecl as [projT3 [projT4 [projT5 [? [? []]]]]]. apply section_ty in r. destruct r as [projT6 [projT7 [? []]]]. eexists (projT3,,projT7).
-        eexists (projT4⟨↑⟩). eexists (projT5⟨↑⟩).
-        constructor. eapply weak_term_lemma. auto.
-        constructor. rewrite <- defeq_erase_weak_ty. rewrite e. auto.
+    (* r_VarN *)
+    + destruct IHRuss_TypingDecl as [projT3 [projT4 [projT5 [? [? []]]]]]. apply section_ty in r. destruct r as [projT6 [projT7 [? []]]]. eexists (projT3,,projT7).
+      eexists (projT4⟨↑⟩). eexists (projT5⟨↑⟩).
+      constructor. eapply weak_term_lemma. exact t.
+      eapply erase_inj_ctx_type.
+      * apply inv_wfcontext_wftype in w. destruct w. exact w0.
+      * apply inv_wfcontext_typing in t. destruct t. exact w0.
+      * rewrite e1. exact e3.
+      * exact w.
+      * constructor. rewrite <- defeq_erase_weak_ty. rewrite e. auto.
         constructor. rewrite <- defeq_erase_weak_term. rewrite e0. auto. 
         simpl. rewrite e1. rewrite e2. auto. 
 
@@ -1430,6 +1451,12 @@ Proof.
       ** 
         apply wfTermLambda.
         -- exact H_wf_A.
+        -- eapply erase_inj_ctx_type.
+           --- apply inv_wfcontext_typing in H_typing_body. destruct H_typing_body as [_ H_wf_source]. exact H_wf_source.
+           --- apply concons. apply inv_wfcontext_wftype in H_wf_A. destruct H_wf_A as [_ H_wf_base]. exact H_wf_base. exact H_wf_A.
+           --- simpl. rewrite H_erase_ctx_A H_erase_A.
+               rewrite H_eq_ctx H_eq_A. reflexivity.
+           --- apply wftype_typing_inv in H_typing_body. destruct H_typing_body as [_ H_wf_B]. exact H_wf_B.
         --
            eapply erase_inj_ctx_term.
            --- apply inv_wfcontext_typing in H_typing_body. destruct H_typing_body as [_ H_wf_source]. exact H_wf_source.
@@ -1489,6 +1516,10 @@ Proof.
 
       repeat split.
       -- apply wfTermApp.
+         --- apply wftype_typing_inv in Ha_typ. destruct Ha_typ; auto.
+             eapply erase_inj_ctx_type. apply inv_wfcontext_wftype in w. destruct w. exact w0.
+             apply inv_wfcontext_typing in Hf_typ. destruct Hf_typ. auto. rewrite H_er_ctx_f. auto. auto.
+         --- exact H_wf_B.
          --- 
              eapply wfTermConv.
              ---- exact Hf_typ.
@@ -1674,14 +1705,15 @@ Proof.
     
 
     (* r_TermAppCong *)
-    + apply section_conv in r. destruct r as [Γ1 [A1 [A'1 [HconvA [HeA [HeA' HeG1]]]]]].
-    apply section_conv in r0. destruct r0 as [Γ2 [B1 [B'1 [HconvB [HeB [HeB' HeG2]]]]]].
-    destruct IHRuss_ConvTermDecl1 as [Γ3 [f1 [g1 [Prod1 [Hconv_f [HeProd [Hef [Heg HeG3]]]]]]]].
-    destruct IHRuss_ConvTermDecl2 as [Γ4 [a1 [b1 [Ta1 [Hconv_a [HeTa [Hea [Heb HeG4]]]]]]]].
+    + apply section_conv in r0. destruct r0 as [Γ1 [A1 [A'1 [HconvA [HeA [HeA' HeG1]]]]]].
+      apply section_conv in r1. destruct r1 as [Γ2 [B1 [B'1 [HconvB [HeB [HeB' HeG2]]]]]].
+      destruct IHRuss_ConvTermDecl1 as [Γ3 [f1 [g1 [Prod1 [Hconv_f [HeProd [Hef [Heg HeG3]]]]]]]].
+      destruct IHRuss_ConvTermDecl2 as [Γ4 [a1 [b1 [Ta1 [Hconv_a [HeTa [Hea [Heb HeG4]]]]]]]].
 
-    eexists Γ1, (App A1 B1 f1 a1), (App A'1 B'1 g1 b1), (B1[a1..]).
-    repeat split.
-    * apply TermAppCong.
+      eexists Γ1, (App A1 B1 f1 a1), (App A'1 B'1 g1 b1), (B1[a1..]).
+      repeat split.
+      * apply TermAppCong.
+        -- apply type_defeq_inv in HconvA. destruct HconvA as [_ [HwfA _]]. exact HwfA.
         -- exact HconvA.
         -- 
         eapply erase_inj_ctx_conv_ty. apply type_defeq_inv in HconvB. destruct HconvB as [? []]. apply inv_wfcontext_wftype in w. destruct w.
@@ -1711,10 +1743,10 @@ Proof.
         apply inv_wfcontext_wftype in w. destruct w.  auto. rewrite HeG4. auto. auto. 
         --- apply type_defeq_inv in HconvA. destruct HconvA as [_ [HwfA _]]. exact HwfA.
         --- rewrite HeTa HeA. reflexivity.
-    * rewrite <- defeq_erase_subst_ty. rewrite HeB Hea. reflexivity.
-    * simpl. rewrite HeA HeB Hef Hea. reflexivity.
-    * simpl. rewrite HeA' HeB' Heg Heb. reflexivity.
-    * exact HeG1.
+      * rewrite <- defeq_erase_subst_ty. rewrite HeB Hea. reflexivity.
+      * simpl. rewrite HeA HeB Hef Hea. reflexivity.
+      * simpl. rewrite HeA' HeB' Heg Heb. reflexivity.
+      * exact HeG1.
 
     (* r_TermLambdaCong *)
     + apply section_conv in r0. destruct r0 as [Γ1 [A1 [A'1 [HconvA [HeA [HeA' HeG1]]]]]].

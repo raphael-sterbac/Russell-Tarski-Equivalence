@@ -106,7 +106,6 @@ Proof.
     + exact HwfB.
 Qed.
 
-
 Lemma renaming_mutual :
   (forall Γ (H : [ |- Γ ]), unit) *
   (
@@ -121,15 +120,231 @@ Lemma renaming_mutual :
   ).
 Proof.
   apply mut_ind_typing.
-  - exact.
-  - intros. exact.
-  - intros. asimpl. apply wfTypeU. auto.
-  - intros. asimpl. apply wfTypeProd. apply X. auto. auto. apply X0. apply up_ren_ctx. asimpl. apply X. all: auto.
-    apply concons. auto. auto.
-  - intros. asimpl. apply wfTypeDecode. apply X. auto. auto.
   
-  (* TODO: Finir la preuve,*)
-Admitted.
+  (*  WfContextDecl  *)
+  - (* wfCtxNil *)
+    exact tt.
+  - (* wfCtxCons *)
+    intros Γ A HwfΓ IHΓ HwfA IHA. exact tt.
+
+  (*  WfTypeDecl  *)
+  - (* wfTypeU *) 
+    intros Γ n HwfΓ IHΓ Δ xi Hren HwfΔ.
+    asimpl. apply wfTypeU. eassumption.
+  - (* wfTypeProd *) 
+    intros Γ A B HwfA IHA HwfB IHB Δ xi Hren HwfΔ.
+    asimpl. apply wfTypeProd.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* wfTypeDecode *) 
+    intros Γ n a Htypa IHa Δ xi Hren HwfΔ.
+    asimpl. apply wfTypeDecode. apply IHa; eassumption.
+
+  (*  TypingDecl  *)
+  - (* wfVar0 *) 
+    intros Γ A HwfA IHA Δ xi Hren HwfΔ.
+    asimpl. destruct Hren as [_ Hhead]. exact Hhead.
+  - (* wfVarN *) 
+    intros Γ A B n Htypn IHn HwfA IHA Δ xi Hren HwfΔ.
+    asimpl. destruct Hren as [Htail _]. 
+    exact (IHA Δ (shift >> xi) Htail HwfΔ).
+  - (* wfTermcProd *) 
+    intros Γ B A n Htypn IHn HwfDec IHDec HtypA IHA Δ xi Hren HwfΔ.
+    asimpl. apply wfTermcProd.
+    + apply IHn; eassumption.
+    + apply IHDec; eassumption.
+    + apply IHA.
+      * apply (up_ren_ctx Γ Δ xi (Decode n B)); [asimpl; apply wfTypeDecode; apply IHn; eassumption | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; apply IHn; eassumption].
+  - (* wfTermcUniv *) 
+    intros Γ k l Hlt HwfΓ IHΓ Δ xi Hren HwfΔ.
+    asimpl. apply wfTermcUniv; eassumption.
+  - (* wfTermcLift *) 
+    intros Γ k l A Hle HtypA IHA Δ xi Hren HwfΔ.
+    asimpl. apply wfTermcLift. apply HtypA. exact Hren. exact HwfΔ. exact IHA.
+  - (* wfTermLambda *) 
+    intros Γ A B t HwfA IHA HwfB IHB Htypt IHt Δ xi Hren HwfΔ.
+    asimpl. apply wfTermLambda.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHt.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* wfTermApp *) 
+    intros Γ f a A B HwfA IHA HwfB IHB Htypf IHf Htypa IHa Δ xi Hren HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |- App _ ?Bxi _ ?axi : ?Tgoal ] =>
+        replace Tgoal with (subst_ty (axi .: var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply wfTermApp.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHf; eassumption.
+    + apply IHa; eassumption.
+  - (* wfTermConv *) 
+    intros Γ a A B Htypa IHa HeqAB IHeq Δ xi Hren HwfΔ.
+    eapply wfTermConv.
+    + apply IHa; eassumption.
+    + apply IHeq; eassumption.
+  
+  (*  ConvTypeDecl  *)
+  - (* TypePiCong *) 
+    intros Γ A B C D HwfA IHA HeqAB IHAB HeqCD IHCD Δ xi Hren HwfΔ.
+    asimpl. apply TypePiCong.
+    + apply IHA; eassumption.
+    + apply IHAB; eassumption.
+    + apply IHCD.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* TypeDecodeCong *) 
+    intros Γ n a b Heqab IHab Δ xi Hren HwfΔ.
+    asimpl. apply TypeDecodeCong. apply IHab; eassumption.
+  - (* TypeDecodeConv *) 
+    intros Γ n m a Htypa IHa Hlt Δ xi Hren.
+    asimpl. apply TypeDecodeConv; [eassumption | apply IHa; eassumption].
+  - (* TypeDecodeLiftConv *) 
+    intros Γ k l a Htypa IHa Hle Δ xi Hren HwfΔ.
+    asimpl. apply TypeDecodeLiftConv; try eassumption; try (apply IHa; eassumption).
+  - (* TypeDecodeProdConv *) 
+    intros Γ a b l Htypa IHa Htypb IHb Δ xi Hren HwfΔ.
+    asimpl. apply TypeDecodeProdConv.
+    + apply IHa; eassumption.
+    + apply IHb.
+      * apply (up_ren_ctx Γ Δ xi (Decode l a)); [asimpl; apply wfTypeDecode; apply IHa; eassumption | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; apply IHa; eassumption].
+  - (* TypeRefl *) 
+    intros Γ A HwfA IHA Δ xi Hren HwfΔ.
+    apply TypeRefl. apply IHA; eassumption.
+  - (* TypeTrans *) 
+    intros Γ A B C HeqAB IHAB HeqBC IHBC Δ xi Hren HwfΔ.
+    eapply TypeTrans.
+    + apply IHAB; eassumption.
+    + apply IHBC; eassumption.
+  - (* TypeSym *) 
+    intros Γ A B HeqAB IHAB Δ xi Hren HwfΔ.
+    apply TypeSym. apply IHAB; eassumption.
+
+  (*  ConvTermDecl  *)
+  - (* TermBRed *) 
+    intros Γ t a B A HwfB IHB Htypa IHa Htypt IHt Δ xi Hren HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |- App _ ?Axi (Lambda _ _ ?axi) ?txi = ?RHS : ?Tgoal ] =>
+        replace RHS with (subst_term (txi .: var_term) axi) by (asimpl; reflexivity);
+        replace Tgoal with (subst_ty (txi .: var_term) Axi) by (asimpl; reflexivity)
+    end.
+    apply TermBRed.
+    + apply IHB; eassumption.
+    + apply IHa.
+      * apply (up_ren_ctx Γ Δ xi B); [apply IHB; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHB; eassumption].
+    + apply IHt; eassumption.
+  - (* TermPiCong *) 
+    intros Γ a a' b b' l Heqaa' IHaa' HwfDec IHDec Heqbb' IHbb' Δ xi Hren HwfΔ.
+    asimpl. apply TermPiCong.
+    + apply IHaa'; eassumption.
+    + apply IHDec; eassumption.
+    + apply IHbb'.
+      * apply (up_ren_ctx Γ Δ xi (Decode l a)); [ | eassumption].
+        asimpl; apply wfTypeDecode. assert (Hext := IHaa' Δ xi Hren HwfΔ). simpl in Hext. exact Hext.
+      * apply concons; [eassumption | ].
+        asimpl; apply wfTypeDecode. assert (Hext := IHaa' Δ xi Hren HwfΔ). simpl in Hext. exact Hext.
+  - (* TermAppCong *) 
+    intros Γ a b f g A B C D HwfA IHA HeqAC IHAC HeqBD IHBD Heqfg IHfg Heqab IHab Δ xi Hren HwfΔ.
+    asimpl. 
+    match goal with
+    | |- [ _ |- App _ ?Bxi _ ?axi = _ : ?Tgoal ] =>
+        replace Tgoal with (subst_ty (axi .: var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply TermAppCong.
+    + apply IHA; eassumption.
+    + apply IHAC; eassumption.
+    + apply IHBD.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHfg; eassumption.
+    + apply IHab; eassumption.
+  - (* TermLambdaCong *) 
+    intros Γ t u A B C D HwfA IHA HeqAC IHAC HeqBD IHBD Heqtu IHtu Δ xi Hren HwfΔ.
+    asimpl. apply TermLambdaCong.
+    + apply IHA; eassumption.
+    + apply IHAC; eassumption.
+    + apply IHBD.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHtu.
+      * apply (up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* TermLiftingProdConv *) 
+    intros Γ a b l p Htypa IHa Htypb IHb Hle Δ xi Hren HwfΔ.
+    asimpl. apply TermLiftingProdConv; try eassumption.
+    + apply IHa; eassumption.
+    + apply IHb.
+      * apply (up_ren_ctx Γ Δ xi (Decode p a)); [asimpl; apply wfTypeDecode; apply IHa; eassumption | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; apply IHa; eassumption].
+  - (* TermLiftingUnivConv *) 
+    intros Γ l p k H1 H2 HwfΓ IHΓ Δ xi Hren HwfΔ.
+    asimpl. apply TermLiftingUnivConv; eassumption.
+  - (* TermLiftingCumul *) 
+    intros Γ a l p q Htypa IHa Hle1 Hle2 Δ xi Hren HwfΔ.
+    asimpl. apply TermLiftingCumul; try eassumption; try (apply IHa; eassumption).
+  - (* TermLiftingCong *) 
+    intros Γ a b l p Heqab IHab Hle Δ xi Hren HwfΔ.
+    asimpl. apply TermLiftingCong; try eassumption; try (apply IHab; eassumption).
+  - (* TermLiftSame *) 
+    intros Γ a l Htypa IHa Δ xi Hren HwfΔ.
+    asimpl. apply TermLiftSame. apply IHa; eassumption.
+  - (* TermFunEta *) 
+    intros Γ f A B Htypf IHf Δ xi Hren HwfΔ.
+    asimpl. 
+    match goal with
+    | |- [ _ |- Lambda ?Axi ?Bxi ?Body = ?fxi : Prod _ _ ] =>
+        replace Body with (App (ren_ty shift Axi) (ren_ty (up_ren shift) Bxi) (ren_term shift fxi) (var_term 0)) by (asimpl; reflexivity)
+    end.
+    apply TermFunEta. apply IHf; eassumption.
+  - (* TermRefl *) 
+    intros Γ a A Htypa IHa Δ xi Hren HwfΔ.
+    apply TermRefl. apply IHa; eassumption.
+  - (* TermConv *) 
+    intros Γ a b A B Heqab IHab HeqAB IHAB Δ xi Hren HwfΔ.
+    eapply TermConv.
+    + apply IHab; eassumption.
+    + apply IHAB; eassumption.
+  - (* TermSym *) 
+    intros Γ a b A Heqab IHab Δ xi Hren HwfΔ.
+    apply TermSym. apply IHab; eassumption.
+  - (* TermTrans *) 
+    intros Γ a b c A Heqab IHab Heqbc IHbc Δ xi Hren HwfΔ.
+    eapply TermTrans.
+    + apply IHab; eassumption.
+    + apply IHbc; eassumption.
+Qed.
+
+Lemma inv_wfcontext_wftype Γ A:
+    [Γ |- A] -> [Γ |- A] × [ |- Γ]
+with  inv_wfcontext_typing Γ a A:
+    [Γ |- a: A] -> [Γ |- a: A] × [ |- Γ].
+Proof.
+    + intros.
+        constructor.
+        auto.
+        induction H.
+        ++ auto.
+        ++ auto.
+        ++ apply inv_wfcontext_typing in t. destruct t. auto.
+    + intros. constructor. auto. induction H.
+        all : try(auto).
+        ++ constructor. apply inv_wfcontext_wftype in w; destruct w. auto. auto.
+        ++ constructor. auto. auto.
+        ++ inversion IHTypingDecl. auto.
+Qed. 
 
 Lemma weak_term_lemma : forall Γ a A B,
   [Γ |- a : A] ->
@@ -137,9 +352,6 @@ Lemma weak_term_lemma : forall Γ a A B,
   [Γ ,, B |- a⟨↑⟩ : A⟨↑⟩].
 Proof.
   intros Γ a A B Htyp HwfB.
-  
-
-
   pose proof (inv_wfcontext_typing _ _ _ Htyp) as [_ HwfΓ].
   apply (fst (snd (snd renaming_mutual))) with (Γ := Γ).
   - exact Htyp.
@@ -147,11 +359,49 @@ Proof.
   - apply concons; assumption.
 Qed.
 
+Lemma weak_cong : forall Γ A B C,
+  [ Γ |- A = B ] -> 
+  [Γ |- C] ->
+  [ Γ,,C |- A⟨↑⟩ = B⟨↑⟩ ].
+Proof.
+  intros Γ A B C HAB HwfC.
+  apply inv_wfcontext_wftype in HwfC; destruct HwfC.
+  apply (fst (snd (snd (snd renaming_mutual)))) with (Γ := Γ).
+  - exact HAB.
+  - apply ren_ctx_shift. assumption. assumption.
+  - apply concons. assumption. assumption.
+Qed.
 
-Fixpoint subst_ctx (Γ Δ : ctx) (sigma : nat -> term) : Prop :=
+Lemma weak_lemma : forall Γ A B,
+  [Γ |- A] ->
+  [Γ |- B] ->
+  [Γ ,, B |- A⟨↑⟩].
+Proof.
+  intros Γ A B HwfA HwfB.
+  pose proof (inv_wfcontext_wftype _ _ HwfA) as [_ HwfΓ].
+  apply (fst (snd renaming_mutual)) with (Γ := Γ).
+  - exact HwfA.
+  - apply ren_ctx_shift; assumption.
+  - apply concons; assumption.
+Qed.
+
+Lemma weak_term_eq_lemma : forall Γ a b A B,
+  [Γ |- a = b : A] ->
+  [Γ |- B] ->
+  [Γ ,, B |- a⟨↑⟩ = b⟨↑⟩ : A⟨↑⟩].
+Proof.
+  intros Γ a b A B Heq HwfB.
+  pose proof (inv_wfcontext_wftype _ _ HwfB) as [_ HwfΓ].
+  apply (snd (snd (snd (snd renaming_mutual)))) with (Γ := Γ).
+  - exact Heq.
+  - apply ren_ctx_shift; assumption.
+  - apply concons; assumption.
+Qed.
+
+Fixpoint subst_ctx (Γ Δ : ctx) (sigma : nat -> term) : Type :=
   match Γ with
   | nil => True
-  | A :: Γ' => subst_ctx Γ' Δ (shift >> sigma) /\ [Δ |- sigma 0 : A[shift >> sigma]]
+  | A :: Γ' => subst_ctx Γ' Δ (shift >> sigma) × [Δ |- sigma 0 : A[shift >> sigma]]
   end.
 
 Lemma subst_ctx_ext : forall Γ Δ sigma tau,
@@ -175,20 +425,19 @@ Qed.
 Lemma weak_subst_ctx : forall Γ Δ sigma B,
   subst_ctx Γ Δ sigma ->
   [Δ |- B] ->
-  subst_ctx Γ (Δ ,, B) (sigma >> shift).
+  subst_ctx Γ (Δ ,, B) (fun x => (sigma x)⟨↑⟩).
 Proof.
   induction Γ as [| A Γ']; intros Δ sigma B Hsubst HwfB.
   - exact I.
   - simpl in *. destruct Hsubst as [Htail Hhead].
     split.
-    + assert (Heq : shift >> (sigma >> shift) = (shift >> sigma) >> shift) by reflexivity.
-      rewrite Heq. apply IHΓ'; assumption.
-    + assert (Heq : (sigma >> shift) 0 = (sigma 0)⟨↑⟩) by reflexivity.
-      rewrite Heq.
-      assert (HeqA : A[shift >> (sigma >> shift)] = A[shift >> sigma]⟨↑⟩).
+    + apply subst_ctx_ext with (sigma := fun x => (sigma (S x))⟨↑⟩).
+      * intro x. reflexivity.
+      * apply IHΓ'; assumption.
+    + assert (HeqA : A[shift >> (fun x => (sigma x)⟨↑⟩)] = A[shift >> sigma]⟨↑⟩).
       { asimpl. reflexivity. }
       rewrite HeqA.
-      eapply weak_term_lemma; assumption.
+      eapply weak_term_lemma; eassumption.
 Qed.
 
 Lemma up_subst_ctx : forall Γ Δ sigma A,
@@ -198,28 +447,574 @@ Lemma up_subst_ctx : forall Γ Δ sigma A,
 Proof.
   intros Γ Δ sigma A HwfA Hsubst.
   simpl. split.
-  - apply subst_ctx_ext with (sigma := sigma >> shift).
+  - apply subst_ctx_ext with (sigma := fun x => (sigma x)⟨↑⟩).
     + intros x. asimpl. reflexivity.
     + apply weak_subst_ctx; assumption.
-  - assert (Heq : up_term_term sigma 0 = var_term 0) by reflexivity.
-    rewrite Heq.
-    assert (HeqA : A[shift >> up_term_term sigma] = A[sigma]⟨↑⟩).
-    { asimpl. reflexivity. }
+  - assert (HeqA : A[shift >> up_term_term sigma] = A[sigma]⟨↑⟩) by (asimpl; reflexivity).
     rewrite HeqA.
     apply wfVar0. exact HwfA.
 Qed.
 
 Lemma substitution_mutual :
-  (forall Γ (H : [ |- Γ ]), True) *
-  (forall Γ A (H : [ Γ |- A ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- A[sigma] ]) *
-  (forall Γ a A (H : [ Γ |- a : A ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- a[sigma] : A[sigma] ]) *
-  (forall Γ A B (H : [ Γ |- A = B ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- A[sigma] = B[sigma] ]) *
-  (forall Γ a b A (H : [ Γ |- a = b : A ]), forall Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- a[sigma] = b[sigma] : A[sigma] ]).
+  (forall Γ (H : [ |- Γ ]), unit) *
+  (
+    (forall Γ A (H : [ Γ |- A ]) Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- A[sigma] ]) *
+    (
+      (forall Γ a A (H : [ Γ |- a : A ]) Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- a[sigma] : A[sigma] ]) *
+      (
+        (forall Γ A B (H : [ Γ |- A = B ]) Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- A[sigma] = B[sigma] ]) *
+        (forall Γ a b A (H : [ Γ |- a = b : A ]) Δ sigma, subst_ctx Γ Δ sigma -> [ |- Δ ] -> [ Δ |- a[sigma] = b[sigma] : A[sigma] ])
+      )
+    )
+  ).
 Proof.
-  apply mut_ind_typing; intros; cbn.
-Admitted.
+  apply mut_ind_typing.
+  
+  (*  WfContextDecl  *)
+  - (* wfCtxNil *)
+    exact tt.
+  - (* wfCtxCons *)
+    intros Γ A HwfΓ IHΓ HwfA IHA. exact tt.
 
-(* --- Properties of the syntax : Injectivity and no-confusion --- *)
+  (*  WfTypeDecl  *)
+  - (* wfTypeU *) 
+    intros Γ n HwfΓ IHΓ Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTypeU. eassumption.
+  - (* wfTypeProd *) 
+    intros Γ A B HwfA IHA HwfB IHB Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTypeProd.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* wfTypeDecode *) 
+    intros Γ n a Htypa IHa Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTypeDecode. apply IHa; eassumption.
+
+  (*  TypingDecl  *)
+  - (* wfVar0 *) 
+    intros Γ A HwfA IHA Δ sigma Hsubst HwfΔ.
+    asimpl. destruct Hsubst as [_ Hhead]. exact Hhead.
+  - (* wfVarN *) 
+    intros Γ A B n Htypn IHn HwfA IHA Δ sigma Hsubst HwfΔ.
+    asimpl. destruct Hsubst as [Htail _]. 
+    exact (IHA Δ (shift >> sigma) Htail HwfΔ).
+  - (* wfTermcProd *) 
+    intros Γ B A n Htypn IHn HwfDec IHDec HtypA IHA Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTermcProd.
+    + apply IHn; eassumption.
+    + apply IHDec; eassumption.
+    + apply IHA.
+      * apply (up_subst_ctx Γ Δ sigma (Decode n B)); [asimpl; apply wfTypeDecode; apply IHn; eassumption | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; apply IHn; eassumption].
+  - (* wfTermcUniv *) 
+    intros Γ k l Hlt HwfΓ IHΓ Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTermcUniv; eassumption.
+  - (* wfTermcLift *) 
+    intros Γ k l A Hle HtypA IHA Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTermcLift. apply HtypA. exact Hsubst. exact HwfΔ. exact IHA.
+  - (* wfTermLambda *) 
+    intros Γ A B t HwfA IHA HwfB IHB Htypt IHt Δ sigma Hsubst HwfΔ.
+    asimpl. apply wfTermLambda.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHt.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* wfTermApp *) 
+    intros Γ f a A B HwfA IHA HwfB IHB Htypf IHf Htypa IHa Δ sigma Hsubst HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |- App _ ?Bxi _ ?axi : ?Tgoal ] =>
+        replace Tgoal with (subst_ty (axi .: var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply wfTermApp.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHf; eassumption.
+    + apply IHa; eassumption.
+  - (* wfTermConv *) 
+    intros Γ a A B Htypa IHa HeqAB IHeq Δ sigma Hsubst HwfΔ.
+    eapply wfTermConv.
+    + apply IHa; eassumption.
+    + apply IHeq; eassumption.
+
+  (*  ConvTypeDecl  *)
+  - (* TypePiCong *) 
+    intros Γ A B C D HwfA IHA HeqAB IHAB HeqCD IHCD Δ sigma Hsubst HwfΔ.
+    asimpl. apply TypePiCong.
+    + apply IHA; eassumption.
+    + apply IHAB; eassumption.
+    + apply IHCD.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* TypeDecodeCong *) 
+    intros Γ n a b Heqab IHab Δ sigma Hsubst HwfΔ.
+    asimpl. apply TypeDecodeCong. apply IHab; eassumption.
+  - (* TypeDecodeConv *) 
+    intros Γ n m a Htypa IHa Hlt Δ sigma Hsubst.
+    asimpl. apply TypeDecodeConv; [eassumption | apply IHa; eassumption].
+  - (* TypeDecodeLiftConv *) 
+    intros Γ k l a Htypa IHa Hle Δ sigma Hsubst HwfΔ.
+    asimpl. apply TypeDecodeLiftConv; try eassumption; try (apply IHa; eassumption).
+  - (* TypeDecodeProdConv *) 
+    intros Γ a b l Htypa IHa Htypb IHb Δ sigma Hsubst HwfΔ.
+    asimpl. apply TypeDecodeProdConv.
+    + apply IHa; eassumption.
+    + apply IHb.
+      * apply (up_subst_ctx Γ Δ sigma (Decode l a)); [asimpl; apply wfTypeDecode; apply IHa; eassumption | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; apply IHa; eassumption].
+  - (* TypeRefl *) 
+    intros Γ A HwfA IHA Δ sigma Hsubst HwfΔ.
+    apply TypeRefl. apply IHA; eassumption.
+  - (* TypeTrans *) 
+    intros Γ A B C HeqAB IHAB HeqBC IHBC Δ sigma Hsubst HwfΔ.
+    eapply TypeTrans.
+    + apply IHAB; eassumption.
+    + apply IHBC; eassumption.
+  - (* TypeSym *) 
+    intros Γ A B HeqAB IHAB Δ sigma Hsubst HwfΔ.
+    apply TypeSym. apply IHAB; eassumption.
+
+  (*  ConvTermDecl  *)
+  - (* TermBRed *) 
+    intros Γ t a B A HwfB IHB Htypa IHa Htypt IHt Δ sigma Hsubst HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |- App _ ?Axi (Lambda _ _ ?axi) ?txi = ?RHS : ?Tgoal ] =>
+        replace RHS with (subst_term (txi .: var_term) axi) by (asimpl; reflexivity);
+        replace Tgoal with (subst_ty (txi .: var_term) Axi) by (asimpl; reflexivity)
+    end.
+    apply TermBRed.
+    + apply IHB; eassumption.
+    + apply IHa.
+      * apply (up_subst_ctx Γ Δ sigma B); [apply IHB; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHB; eassumption].
+    + apply IHt; eassumption.
+  - (* TermPiCong *) 
+    intros Γ a a' b b' l Heqaa' IHaa' HwfDec IHDec Heqbb' IHbb' Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermPiCong.
+    + apply IHaa'; eassumption.
+    + apply IHDec; eassumption.
+    + apply IHbb'.
+      * apply (up_subst_ctx Γ Δ sigma (Decode l a)); [ | eassumption].
+        asimpl; apply wfTypeDecode. assert (Hext := IHaa' Δ sigma Hsubst HwfΔ). simpl in Hext. exact Hext.
+      * apply concons; [eassumption | ].
+        asimpl; apply wfTypeDecode. assert (Hext := IHaa' Δ sigma Hsubst HwfΔ). simpl in Hext. exact Hext.
+  - (* TermAppCong *) 
+    intros Γ a b f g A B C D HwfA IHA HeqAC IHAC HeqBD IHBD Heqfg IHfg Heqab IHab Δ sigma Hsubst HwfΔ.
+    asimpl. 
+    match goal with
+    | |- [ _ |- App _ ?Bxi _ ?axi = _ : ?Tgoal ] =>
+        replace Tgoal with (subst_ty (axi .: var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply TermAppCong.
+    + apply IHA; eassumption.
+    + apply IHAC; eassumption.
+    + apply IHBD.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHfg; eassumption.
+    + apply IHab; eassumption.
+  - (* TermLambdaCong *) 
+    intros Γ t u A B C D HwfA IHA HeqAC IHAC HeqBD IHBD Heqtu IHtu Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermLambdaCong.
+    + apply IHA; eassumption.
+    + apply IHAC; eassumption.
+    + apply IHBD.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+    + apply IHtu.
+      * apply (up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply concons; [eassumption | apply IHA; eassumption].
+  - (* TermLiftingProdConv *) 
+    intros Γ a b l p Htypa IHa Htypb IHb Hle Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermLiftingProdConv; try eassumption.
+    + apply IHa; eassumption.
+    + apply IHb.
+      * apply (up_subst_ctx Γ Δ sigma (Decode p a)); [asimpl; apply wfTypeDecode; apply IHa; eassumption | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; apply IHa; eassumption].
+  - (* TermLiftingUnivConv *) 
+    intros Γ l p k H1 H2 HwfΓ IHΓ Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermLiftingUnivConv; eassumption.
+  - (* TermLiftingCumul *) 
+    intros Γ a l p q Htypa IHa Hle1 Hle2 Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermLiftingCumul; try eassumption; try (apply IHa; eassumption).
+  - (* TermLiftingCong *) 
+    intros Γ a b l p Heqab IHab Hle Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermLiftingCong; try eassumption; try (apply IHab; eassumption).
+  - (* TermLiftSame *) 
+    intros Γ a l Htypa IHa Δ sigma Hsubst HwfΔ.
+    asimpl. apply TermLiftSame. apply IHa; eassumption.
+  - (* TermFunEta *) 
+    intros Γ f A B Htypf IHf Δ sigma Hsubst HwfΔ.
+    asimpl. 
+    match goal with
+    | |- [ _ |- Lambda ?Axi ?Bxi ?Body = ?fxi : Prod _ _ ] =>
+        replace Body with (App (ren_ty shift Axi) (ren_ty (up_ren shift) Bxi) (ren_term shift fxi) (var_term 0)) by (asimpl; reflexivity)
+    end.
+    apply TermFunEta. apply IHf; eassumption.
+  - (* TermRefl *) 
+    intros Γ a A Htypa IHa Δ sigma Hsubst HwfΔ.
+    apply TermRefl. apply IHa; eassumption.
+  - (* TermConv *) 
+    intros Γ a b A B Heqab IHab HeqAB IHAB Δ sigma Hsubst HwfΔ.
+    eapply TermConv.
+    + apply IHab; eassumption.
+    + apply IHAB; eassumption.
+  - (* TermSym *) 
+    intros Γ a b A Heqab IHab Δ sigma Hsubst HwfΔ.
+    apply TermSym. apply IHab; eassumption.
+  - (* TermTrans *) 
+    intros Γ a b c A Heqab IHab Heqbc IHbc Δ sigma Hsubst HwfΔ.
+    eapply TermTrans.
+    + apply IHab; eassumption.
+    + apply IHbc; eassumption.
+Qed.
+
+Lemma subst_ctx_id : forall Γ, [|- Γ] -> subst_ctx Γ Γ var_term.
+Proof.
+  induction Γ as [| A Γ']; intros Hwf.
+  - exact I.
+  - inversion Hwf; subst. simpl. split.
+    + apply subst_ctx_ext with (sigma := fun x => (var_term x)⟨↑⟩).
+      * intro x. reflexivity.
+      * apply weak_subst_ctx.
+        -- apply IHΓ'. exact H1.
+        -- exact H2.
+    + assert (HeqA : A[shift >> var_term] = A⟨↑⟩).
+      { symmetry. apply rinstInst'_ty. }
+      rewrite HeqA.
+      apply wfVar0. exact H2.
+Qed.
+
+Lemma subst_ctx_single : forall Γ A a,
+  [|- Γ] ->
+  [Γ |- a : A] ->
+  subst_ctx (Γ ,, A) Γ (a..).
+Proof.
+  intros Γ A a HwfΓ Htypa.
+  simpl. split.
+  - apply subst_ctx_ext with (sigma := var_term).
+    + intro x. reflexivity.
+    + apply subst_ctx_id. exact HwfΓ.
+  - assert (HeqA : A[shift >> (a..)] = A) by (asimpl; reflexivity).
+    rewrite HeqA.
+    exact Htypa.
+Qed.
+
+Lemma substitution_lemma :
+    forall {Γ A B a},
+    [ Γ ,, A |- B ] ->
+    [ Γ |- a : A ] ->
+    [ Γ |- B[a..] ].
+Proof.
+  intros Γ A B a HwfB Htypa.
+  pose proof (inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd substitution_mutual)) with (Γ := Γ ,, A).
+  - exact HwfB.
+  - apply subst_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Lemma substitution_lemma_term :
+    forall {Γ A B a t},
+    [ Γ ,, A |- t : B ] ->
+    [ Γ |- a : A ] ->
+    [ Γ |- t[a..] : B[a..] ].
+Proof.
+  intros Γ A B a t Htypt Htypa.
+  pose proof (inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd (snd substitution_mutual))) with (Γ := Γ ,, A).
+  - exact Htypt.
+  - apply subst_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Lemma subst_cong_same :
+    forall {Γ A B B' a},
+    [ Γ ,, A |- B = B' ] ->
+    [ Γ |- a : A ] ->
+    [ Γ |- B[a..] = B'[a..] ].
+Proof.
+  intros Γ A B B' a HeqB Htypa.
+  pose proof (inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd (snd (snd substitution_mutual)))) with (Γ := Γ ,, A).
+  - exact HeqB.
+  - apply subst_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Fixpoint subst_eq_ctx (Γ Δ : ctx) (sigma tau : nat -> term) : Type :=
+  match Γ with
+  | nil => True
+  | A :: Γ' => subst_eq_ctx Γ' Δ (shift >> sigma) (shift >> tau) × [Δ |- sigma 0 = tau 0 : A[shift >> sigma]]
+  end.
+
+Lemma subst_eq_ctx_ext : forall Γ Δ sigma sigma' tau tau',
+  (forall x, sigma x = sigma' x) ->
+  (forall x, tau x = tau' x) ->
+  subst_eq_ctx Γ Δ sigma tau ->
+  subst_eq_ctx Γ Δ sigma' tau'.
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma sigma' tau tau' Heq1 Heq2 Hsubst.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply IHΓ' with (sigma := shift >> sigma) (tau := shift >> tau).
+      * intro x. exact (Heq1 (S x)).
+      * intro x. exact (Heq2 (S x)).
+      * exact Htail.
+    + rewrite <- (Heq1 0). rewrite <- (Heq2 0).
+      assert (HeqA : A[shift >> sigma] = A[shift >> sigma']).
+      { apply ext_ty. intro x. exact (Heq1 (S x)). }
+      rewrite <- HeqA. exact Hhead.
+Qed.
+
+Lemma weak_subst_eq_ctx : forall Γ Δ sigma tau B,
+  subst_eq_ctx Γ Δ sigma tau ->
+  [Δ |- B] ->
+  subst_eq_ctx Γ (Δ ,, B) (fun x => (sigma x)⟨↑⟩) (fun x => (tau x)⟨↑⟩).
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma tau B Hsubst HwfB.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply subst_eq_ctx_ext with (sigma := fun x => (sigma (S x))⟨↑⟩) (tau := fun x => (tau (S x))⟨↑⟩).
+      * intro x. reflexivity.
+      * intro x. reflexivity.
+      * apply IHΓ'; assumption.
+    + assert (HeqA : A[shift >> (fun x => (sigma x)⟨↑⟩)] = A[shift >> sigma]⟨↑⟩).
+      { asimpl. reflexivity. }
+      rewrite HeqA.
+      eapply weak_term_eq_lemma; eassumption.
+Qed.
+
+Lemma up_subst_eq_ctx : forall Γ Δ sigma tau A,
+  [Δ |- A[sigma]] ->
+  subst_eq_ctx Γ Δ sigma tau ->
+  subst_eq_ctx (Γ ,, A) (Δ ,, A[sigma]) (up_term_term sigma) (up_term_term tau).
+Proof.
+  intros Γ Δ sigma tau A HwfA Hsubst.
+  simpl. split.
+  - apply subst_eq_ctx_ext with (sigma := fun x => (sigma x)⟨↑⟩) (tau := fun x => (tau x)⟨↑⟩).
+    + intros x. asimpl. reflexivity.
+    + intros x. asimpl. reflexivity.
+    + apply weak_subst_eq_ctx; assumption.
+  - assert (HeqA : A[shift >> up_term_term sigma] = A[sigma]⟨↑⟩) by (asimpl; reflexivity).
+    rewrite HeqA.
+    apply TermRefl. apply wfVar0. exact HwfA.
+Qed.
+
+Lemma subst_eq_mutual :
+  (forall Γ (H : [ |- Γ ]), unit) *
+  (
+    (forall Γ A (H : [ Γ |- A ]) Δ sigma tau,
+      subst_ctx Γ Δ sigma -> subst_eq_ctx Γ Δ sigma tau -> [ |- Δ ] -> [ Δ |- A[sigma] = A[tau] ]) *
+    (
+      (forall Γ a A (H : [ Γ |- a : A ]) Δ sigma tau,
+        subst_ctx Γ Δ sigma -> subst_eq_ctx Γ Δ sigma tau -> [ |- Δ ] -> [ Δ |- a[sigma] = a[tau] : A[sigma] ]) *
+      (
+        (forall Γ A B (H : [ Γ |- A = B ]), unit) *
+        (forall Γ a b A (H : [ Γ |- a = b : A ]), unit)
+      )
+    )
+  ).
+Proof.
+  apply mut_ind_typing.
+
+  (*  WfContextDecl  *)
+  - (* wfCtxNil *)
+    exact tt.
+  - (* wfCtxCons *)
+    intros; exact tt.
+
+  (*  WfTypeDecl  *)
+  - (* wfTypeU *)
+    intros Γ n HwfΓ IHΓ Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. apply TypeRefl. apply wfTypeU. exact HwfΔ.
+  - (* wfTypeProd *)
+    intros Γ A B HwfA IHA HwfB IHB Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    assert (HwfA_sub : [Δ |- A[sigma]]).
+    { apply (fst (snd substitution_mutual)) with (Γ := Γ); eassumption. }
+    apply TypePiCong.
+    + exact HwfA_sub.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply concons; [eassumption | exact HwfA_sub].
+  - (* wfTypeDecode *)
+    intros Γ n a Htypa IHa Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. apply TypeDecodeCong. apply IHa; eassumption.
+
+  (*  TypingDecl  *)
+  - (* wfVar0 *)
+    intros Γ A HwfA IHA Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. destruct Heq as [_ Hhead]. exact Hhead.
+  - (* wfVarN *)
+    intros Γ A B n Htypn IHn HwfA IHA Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. destruct Hsubst as [Hsubst_tail _]. destruct Heq as [Heq_tail _].
+    exact (IHA Δ (shift >> sigma) (shift >> tau) Hsubst_tail Heq_tail HwfΔ).
+- (* wfTermcProd *)
+    intros Γ B A n Htypn IHn HwfDec IHDec HtypA IHA Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    assert (HtypB_sub : [Δ |- B[sigma] : U n]).
+    { exact (fst (snd (snd substitution_mutual)) Γ B (U n) Htypn Δ sigma Hsubst HwfΔ). }
+    apply TermPiCong.
+    + exact HtypB_sub.
+    + apply IHn; eassumption.
+    + apply IHA.
+      * apply (up_subst_ctx Γ Δ sigma (Decode n B)); [asimpl; apply wfTypeDecode; exact HtypB_sub | eassumption].
+      * apply (up_subst_eq_ctx Γ Δ sigma tau (Decode n B)); [asimpl; apply wfTypeDecode; exact HtypB_sub | eassumption].
+      * apply concons; [eassumption | asimpl; apply wfTypeDecode; exact HtypB_sub].
+  - (* wfTermcUniv *)
+    intros Γ k l Hlt HwfΓ IHΓ Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. apply TermRefl. apply wfTermcUniv; eassumption.
+  - (* wfTermcLift *)
+    intros Γ k l A Hle HtypA IHA Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. apply TermLiftingCong.
+    + apply HtypA; eassumption.
+    + exact IHA.
+  - (* wfTermLambda *)
+    intros Γ A B t HwfA IHA HwfB IHB Htypt IHt Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    assert (HwfA_sub : [Δ |- A[sigma]]).
+    { apply (fst (snd substitution_mutual)) with (Γ := Γ); eassumption. }
+    apply TermLambdaCong.
+    + exact HwfA_sub.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply concons; [eassumption | exact HwfA_sub].
+    + apply IHt.
+      * apply (up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply concons; [eassumption | exact HwfA_sub].
+  - (* wfTermApp *)
+    intros Γ f a A B HwfA IHA HwfB IHB Htypf IHf Htypa IHa Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |- App _ ?Bxi _ ?axi = _ : ?Tgoal ] =>
+        replace Tgoal with (subst_ty (axi .: var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    assert (HwfA_sub : [Δ |- A[sigma]]).
+    { apply (fst (snd substitution_mutual)) with (Γ := Γ); eassumption. }
+    apply TermAppCong.
+    + exact HwfA_sub.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply concons; [eassumption | exact HwfA_sub].
+    + apply IHf; eassumption.
+    + apply IHa; eassumption.
+  - (* wfTermConv *)
+    intros Γ a A B Htypa IHa HeqAB IHeq Δ sigma tau Hsubst Heq HwfΔ.
+    eapply TermConv.
+    + apply IHa; eassumption.
+    + apply (fst (snd (snd (snd substitution_mutual)))) with (Γ := Γ); eassumption.
+
+  (*  ConvTypeDecl (8)  *)
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+
+  (*  ConvTermDecl (14)  *)
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+Qed.
+
+Lemma subst_eq_ctx_id : forall Γ, [|- Γ] -> subst_eq_ctx Γ Γ var_term var_term.
+Proof.
+  induction Γ as [| A Γ']; intros Hwf.
+  - exact I.
+  - inversion Hwf; subst. simpl. split.
+    + apply subst_eq_ctx_ext with (sigma := fun x => (var_term x)⟨↑⟩) (tau := fun x => (var_term x)⟨↑⟩).
+      * intro x. reflexivity.
+      * intro x. reflexivity.
+      * apply weak_subst_eq_ctx.
+        -- apply IHΓ'. exact H1.
+        -- exact H2.
+    + assert (HeqA : A[shift >> var_term] = A⟨↑⟩).
+      { symmetry. apply rinstInst'_ty. }
+      rewrite HeqA.
+      apply TermRefl. apply wfVar0. exact H2.
+Qed.
+
+Lemma subst_eq_ctx_single : forall Γ A a b,
+  [|- Γ] ->
+  [Γ |- a = b : A] ->
+  subst_eq_ctx (Γ ,, A) Γ (a..) (b..).
+Proof.
+  intros Γ A a b HwfΓ Heqab.
+  simpl. split.
+  - apply subst_eq_ctx_ext with (sigma := var_term) (tau := var_term).
+    + intro x. reflexivity.
+    + intro x. reflexivity.
+    + apply subst_eq_ctx_id. exact HwfΓ.
+  - assert (HeqA : A[shift >> (a..)] = A) by (asimpl; reflexivity).
+    rewrite HeqA.
+    exact Heqab.
+Qed.
+
+Lemma subst_ty_eq :
+  forall {Γ A B a b},
+  [ Γ ,, A |- B ] ->
+  [ Γ |- a : A ] ->
+  [ Γ |- a = b : A ] ->
+  [ Γ |- B[a..] = B[b..] ].
+Proof.
+  intros Γ A B a b HwfB Htypa Heqab.
+  pose proof (inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd subst_eq_mutual)) with (Γ := Γ ,, A).
+  - exact HwfB.
+  - apply subst_ctx_single; assumption.
+  - apply subst_eq_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Lemma subst_cong_aux :
+  forall {Γ A B B' a b},
+  [ Γ ,, A |- B = B' ] ->
+  [ Γ ,, A |- B' ] ->
+  [ Γ |- a : A ] ->
+  [ Γ |- a = b : A ] ->
+  [ Γ |- B[a..] = B'[b..] ].
+Proof.
+  intros Γ A B B' a b HeqB HwfB' Htypa Heqab.
+  eapply TypeTrans.
+  - eapply subst_cong_same; eassumption.
+  - eapply subst_ty_eq; eassumption.
+Qed.
+
+(* ---
+  Properties of the syntax : Injectivity and no-confusion
+  Taken here as axioms, but they can be proven via the domain-theoretic technique
+ --- *)
 
 Axiom UInj: forall {Γ k l},
     [Γ |- U k = U l] ->
@@ -230,28 +1025,8 @@ Axiom cohesion_prod_univ: forall {Γ t A B n},
     [Γ |- t : U n] ->
     False.
 
+
 (* ----- Essential lemmas -----*)
-
-
-Lemma inv_wfcontext_wftype Γ A:
-    [Γ |- A] -> [Γ |- A] × [ |- Γ]
-with  inv_wfcontext_typing Γ a A:
-    [Γ |- a: A] -> [Γ |- a: A] × [ |- Γ].
-Proof.
-    + intros.
-        constructor.
-        auto.
-        induction H.
-        ++ auto.
-        ++ auto.
-        ++ apply inv_wfcontext_typing in t. destruct t. auto.
-    + intros. constructor. auto. induction H.
-        all : try(auto).
-        ++ constructor. apply inv_wfcontext_wftype in w; destruct w. auto. auto.
-        ++ constructor. auto. auto.
-        ++ inversion IHTypingDecl. auto.
-Qed. 
-
 
 Definition subst_context (A B : ty) (Γ : ctx) (Δ : ctx) : ctx :=
   Δ ++ (B :: Γ).
@@ -339,6 +1114,7 @@ Proof.
            apply TypeSym. 
            apply weak_cong.
            exact Hconv.
+           apply type_defeq_inv in Hconv. destruct Hconv as [_ [_ HwfB]]. auto.
       * 
         simpl. injection Heq. intros. subst.
         apply wfVar0.
@@ -369,8 +1145,11 @@ Proof.
     + (* cLift *) apply wfTermcLift; auto.
     + (* Lambda *) apply wfTermLambda.
       * eapply context_conversion_ty; eauto.
+      * eapply context_conversion_ty with (Δ := Δ0 ,, A); eauto. simpl. reflexivity.
       * eapply IHTypingDecl with (Δ := Δ0 ,, A); eauto. simpl. reflexivity.
     + (* App *) eapply wfTermApp.
+      * eapply context_conversion_ty; eauto.
+      * eapply context_conversion_ty with (Δ := Δ0 ,, A); eauto. simpl. reflexivity.
       * eapply IHTypingDecl1; eauto.
       * eapply IHTypingDecl2; eauto.
     + (* Conv *) eapply wfTermConv.
@@ -404,7 +1183,7 @@ Proof.
       * specialize (IHConvTermDecl1 Γ'0 A0 B0 Δ0 eq_refl Hconv). auto. 
       * specialize (IHConvTermDecl2 Γ'0 A0 B0 (Δ0,, Decode n A) eq_refl Hconv). auto.
     + (* AppCong *) eapply TermAppCong.
-    
+      * eapply context_conversion_ty; eauto.
       * eapply context_conversion_ty_eq; eauto.
       * eapply context_conversion_ty_eq with (Δ := Δ0 ,, A); eauto. simpl. reflexivity.
       * eapply IHConvTermDecl1; eauto.
@@ -450,6 +1229,7 @@ Proof.
   (* typing_defeq_inv *)
   - intros H. induction H.
     + (* TermBRed *)
+      pose proof (wftype_typing_inv _ _ _ t0) as [_ Hwf_B].
       split. { eapply TermBRed; eassumption. }
       split.
       * apply wfTermApp; eauto. apply wfTermLambda; eauto.
@@ -462,32 +1242,42 @@ Proof.
       * apply wfTermcProd.
         -- exact Htyp_A.
         -- apply wfTypeDecode. exact Htyp_A.
-        -- exact Htyp_C.      * apply wfTermcProd; eauto. apply wfTypeDecode. exact Htyp_B.
+        -- exact Htyp_C.
+      * apply wfTermcProd; eauto. apply wfTypeDecode. exact Htyp_B.
         eapply conv_hypothesis_typing. exact Htyp_D. apply TypeDecodeCong. exact Heq_AB.
     + (* TermAppCong *)
       destruct IHConvTermDecl1 as [Heq_f [Htyp_f Htyp_g]].
       destruct IHConvTermDecl2 as [Heq_a [Htyp_a Htyp_b]].
+      apply type_defeq_inv in c. destruct c as [c [Hwf_A Hwf_A']].
+      apply type_defeq_inv in c0. destruct c0 as [c0 [Hwf_B Hwf_B']].
       split. { eapply TermAppCong; eassumption. }
       split.
       * eapply wfTermApp; eauto.
       * eapply wfTermConv. instantiate (1 := B'[b..]).
-        -- apply type_defeq_inv in c. destruct c as [c [Hwf_A Hwf_A']].
-           apply type_defeq_inv in c0. destruct c0 as [c0 [Hwf_B Hwf_B']].
-           eapply wfTermApp.
-           ++ eapply wfTermConv. exact Htyp_g. apply TypePiCong. exact Hwf_A. exact c. apply TypeSym. apply TypeSym. exact c0.
+        -- eapply wfTermApp.
+           ++ exact Hwf_A'.
+           ++ eapply conv_hypothesis_wftype. exact Hwf_B'. exact c.
+           ++ eapply wfTermConv. exact Htyp_g. apply TypePiCong. exact Hwf_A. exact c. exact c0.
            ++ eapply wfTermConv. exact Htyp_b. exact c.
-        -- eapply subst_cong. apply TypeSym. exact c0. apply TermSym. exact Heq_a.
+        -- eapply subst_cong_aux.
+           ++ apply TypeSym. exact c0.
+           ++ exact Hwf_B.
+           ++ exact Htyp_b.
+           ++ apply TermSym. exact Heq_a.
     + (* TermLambdaCong *)
       destruct IHConvTermDecl as [Heq_tu [Htyp_t Htyp_u]].
+      apply type_defeq_inv in c. destruct c as [c [Hwf_A Hwf_A']].
+      apply type_defeq_inv in c0. destruct c0 as [c0 [Hwf_B Hwf_B']].
       split. { apply TermLambdaCong; eassumption. }
       split.
       * apply wfTermLambda; eauto.
       * eapply wfTermConv. instantiate (1:=Prod A' B').
         -- apply wfTermLambda.
-           ++ apply type_defeq_inv in c0. destruct c0 as [? []]. auto.  apply type_defeq_inv in c. destruct c as [? []]. auto. 
-           ++ eapply conv_hypothesis_typing. eapply wfTermConv. exact Htyp_u. exact c0. auto.
-        -- apply TypePiCong. apply type_defeq_inv in c0. destruct c0 as [? []]. auto. apply type_defeq_inv in c. destruct c as [? []]. auto.
-           auto using TypeSym. eapply conv_hypothesis_type_eq. apply TypeSym. exact c0. auto using TypeSym. 
+           ++ exact Hwf_A'.
+           ++ eapply conv_hypothesis_wftype. exact Hwf_B'. exact c.
+           ++ eapply conv_hypothesis_typing. eapply wfTermConv. exact Htyp_u. exact c0. exact c.
+        -- apply TypePiCong. exact Hwf_A'. apply TypeSym. exact c.
+           eapply conv_hypothesis_type_eq. apply TypeSym. exact c0. exact c.
     + (* TermLiftingProdConv *)
       split. { apply TermLiftingProdConv; eassumption. }
       split.
@@ -526,11 +1316,22 @@ Proof.
         inversion Hwf_Prod. subst.
         apply wfTermLambda.
         -- exact H2.
+        -- exact H3.
         -- eapply wfTermConv.
            ++ eapply wfTermApp.
+              ** apply weak_lemma; exact H2.
+              ** pose proof (inv_wfcontext_wftype _ _ H2) as [_ HwfΓ].
+                 apply (fst (snd renaming_mutual)) with (Γ := Γ ,, A).
+                 --- exact H3.
+                 --- apply (up_ren_ctx Γ (Γ ,, A) shift A).
+                     +++ apply weak_lemma; exact H2.
+                     +++ apply ren_ctx_shift; assumption.
+                 --- apply concons.
+                     +++ apply concons; assumption.
+                     +++ apply weak_lemma; exact H2.
               ** assert (Hweak : [Γ,, A |- f⟨↑⟩ : (Prod A B)⟨↑⟩]).
-              {eapply weak_term_lemma in t. instantiate (1:=A) in t. auto. }
-              asimpl in Hweak. exact Hweak.
+                 { eapply weak_term_lemma in t. instantiate (1:=A) in t. auto. auto. }
+                 asimpl in Hweak. exact Hweak.
               ** apply wfVar0. exact H2.
            ++ rewrite subst_up_var_0_ty. apply TypeRefl. exact H3.
       * exact t.
@@ -558,9 +1359,9 @@ Proof.
     + exact H.
     + induction H.
       * (* wfVar0 *)
-        apply weak_lemma. assumption.
+        apply weak_lemma. assumption. assumption.
       * (* wfVarN *)
-        apply weak_lemma. assumption.
+        apply weak_lemma. assumption. assumption.
       * (* cProd *)
         apply wfTypeU. apply inv_wfcontext_wftype in IHTypingDecl1. destruct IHTypingDecl1. auto.
       * (* cUniv *)
@@ -572,15 +1373,12 @@ Proof.
         ** assumption.
         ** assumption.
       * (* App *)
-        inversion IHTypingDecl1. subst.
-        eapply substitution_lemma.
-        ** exact H5. 
-        ** exact H0.
+        eapply substitution_lemma; eassumption.
       * (* Conv *)
         apply type_defeq_inv in c. destruct c as [_ [_ HwfB]].
         exact HwfB.
 
-(* wftype_hypothesis_inv *)
+  (* wftype_hypothesis_inv *)
   - intros. 
     remember (Γ ,, A) as Γ' in H.
     dependent induction H; intros; subst; try discriminate.
@@ -615,8 +1413,8 @@ Proof.
         ** (* cProd *) apply inv_wfcontext_typing in H. inversion H. inversion H4. auto.
         ** (* cUniv *) inversion H0; subst; assumption.
         ** (* cLift *) apply inv_wfcontext_typing in H. inversion H. inversion H3. auto.
-        ** (* Lambda *) apply inv_wfcontext_typing in H. inversion H. inversion H3. auto.
-        ** (* App *) apply inv_wfcontext_typing in H. inversion H. inversion H3. auto.
+        ** (* Lambda *) apply inv_wfcontext_typing in H. inversion H. inversion H3. inversion H4. assumption. inversion H4. assumption. 
+        ** (* App *) apply inv_wfcontext_typing in H. inversion H. inversion H3. all: auto. all: inversion H5; auto.
         ** (* Conv *) apply inv_wfcontext_typing in H. inversion H. inversion H3. auto.
       * 
         exact H.
@@ -648,7 +1446,19 @@ Proof.
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
-Admitted. 
+Admitted. (* Makes my vscode crash *)
+
+Lemma subst_cong :
+  forall {Γ A B B' a b},
+  [ Γ ,, A |- B = B' ] ->
+  [ Γ |- a = b : A ] ->
+  [ Γ |- B[a..] = B'[b..] ].
+Proof.
+  intros Γ A B B' a b HeqB Heqab.
+  pose proof (type_defeq_inv _ _ _ HeqB) as [_ [_ HwfB']].
+  pose proof (typing_defeq_inv _ _ _ _ Heqab) as [_ [Htypa _]].
+  eapply subst_cong_aux; eassumption.
+Qed.
 
 
 
@@ -723,12 +1533,11 @@ Lemma app_inv Γ A B C u1 u2:
     [Γ |- C = B[u2..]] ×  [Γ |- A] × [Γ,,A |- B] × [Γ |- u1 : Prod A B] × [Γ |- u2 : A].
 Proof.
     intros. dependent induction H.
-    - apply wftype_typing_inv in H. destruct H. assert (wbis:=w). apply prod_ty_inv in wbis. destruct wbis.
-        constructor. apply TypeRefl. eapply substitution_lemma. instantiate (1:=A). auto. auto.
-        constructor. auto. constructor. auto. constructor. auto. auto.
+    - repeat split; auto.
+      apply TypeRefl. eapply substitution_lemma; eauto.
     - specialize (IHTypingDecl A B u1 u2 eq_refl). destruct IHTypingDecl as [? [? [? []]]]. 
-        constructor. apply TypeSym in c. apply TypeTrans with (1:= c). auto.
-        constructor. auto. constructor. auto. constructor. auto. auto.   
+      constructor. apply TypeSym in c. apply TypeTrans with (1:= c). auto.
+      constructor. auto. constructor. auto. constructor. auto. auto.   
 Qed.
 
 Fixpoint iter_weak (n : nat) (A : ty) : ty :=
@@ -753,7 +1562,7 @@ Proof.
     simpl in x0. injection x0. intros; subst.
     simpl.
     apply TypeRefl. 
-    apply weak_lemma. assumption.
+    apply weak_lemma. assumption. assumption.
     simpl in x. contradict x. auto.
 
   (* wfVarN : var (n+1) *)
@@ -761,7 +1570,7 @@ Proof.
         * simpl in x. contradict x. lia.
         * simpl in x. simpl in x0. inversion x0. simpl. 
         specialize (IHTypingDecl Δ0 Γ'0 A0). simpl in IHTypingDecl. rewrite H2 in IHTypingDecl. specialize (IHTypingDecl JMeq_refl).
-        eapply weak_cong in IHTypingDecl. exact IHTypingDecl. simpl.  assert (n = length Δ0) by lia. rewrite H0. auto.
+        eapply weak_cong in IHTypingDecl. exact IHTypingDecl. simpl.  assert (n = length Δ0) by lia. rewrite H0. auto. subst. assumption. 
 
   (* Conv : *)
   - 
@@ -828,6 +1637,8 @@ Proof.
         ++ exact H.
         ++ apply TypeRefl.
            apply weak_lemma.
+           apply wftype_typing_inv in H; destruct H.
+           assumption.
            exact w. 
 
     - specialize (IHTypingDecl Heqt).
@@ -876,7 +1687,7 @@ Proof.
     + exact HeqA1. 
     + eapply TypeTrans.
       * 
-        eapply weak_cong. exact Hconv. 
+        eapply weak_cong. exact Hconv. apply type_defeq_inv in HeqA1; destruct HeqA1 as [? []]. apply wftype_hypothesis_inv in w; destruct w. assumption.  
       * 
         apply TypeSym. exact HeqA2.
 Qed.
@@ -958,6 +1769,899 @@ Proof.
   eapply r_prod_typing_inv. exact H0. 
 Qed.
 
+(* --- Russell substitutions and weakenings --- *)
+
+Scheme r_wf_ctx_rect_mut := Induction for Russ_WfContextDecl Sort Type
+with r_wf_ty_rect_mut := Induction for Russ_WfTypeDecl Sort Type
+with r_typing_rect_mut := Induction for Russ_TypingDecl Sort Type
+with r_conv_ty_rect_mut := Induction for Russ_ConvTypeDecl Sort Type
+with r_conv_term_rect_mut := Induction for Russ_ConvTermDecl Sort Type.
+
+Combined Scheme r_mut_ind_typing from 
+  r_wf_ctx_rect_mut, r_wf_ty_rect_mut, r_typing_rect_mut, r_conv_ty_rect_mut, r_conv_term_rect_mut.
+
+Fixpoint r_ren_ctx (Γ Δ : russ_ctx) (xi : nat -> nat) : Type :=
+  match Γ with
+  | nil => True
+  | A :: Γ' => r_ren_ctx Γ' Δ (shift >> xi) × [Δ |-r r_var_term (xi 0) : A⟨shift >> xi⟩]
+  end.
+
+Lemma r_ren_ctx_ext : forall Γ Δ xi zeta,
+  (forall x, xi x = zeta x) ->
+  r_ren_ctx Γ Δ xi ->
+  r_ren_ctx Γ Δ zeta.
+Proof.
+  induction Γ as [| A Γ']; intros Δ xi zeta Heq Hren.
+  - exact I.
+  - simpl in *. destruct Hren as [Htail Hhead].
+    split.
+    + apply IHΓ' with (xi := shift >> xi).
+      * intro x. exact (Heq (S x)).
+      * exact Htail.
+    + rewrite <- (Heq 0).
+      assert (HeqA : A⟨shift >> xi⟩ = A⟨shift >> zeta⟩).
+      { apply extRen_russ_term. intro x. exact (Heq (S x)). }
+      rewrite <- HeqA. exact Hhead.
+Qed.
+
+Lemma r_weak_ren_ctx : forall Γ Δ xi B,
+  r_ren_ctx Γ Δ xi ->
+  [Δ |-r B] ->
+  r_ren_ctx Γ (Δ ,,r B) (xi >> shift).
+Proof.
+  induction Γ as [| A Γ']; intros Δ xi B Hren HwfB.
+  - exact I.
+  - simpl in *. destruct Hren as [Htail Hhead].
+    split.
+    + assert (Heq : shift >> (xi >> shift) = (shift >> xi) >> shift) by reflexivity.
+      rewrite Heq. apply IHΓ'; assumption.
+    + assert (Heqn : r_var_term ((xi >> shift) 0) = r_var_term (S (xi 0))) by reflexivity.
+      rewrite Heqn.
+      assert (HeqA : A⟨shift >> (xi >> shift)⟩ = A⟨shift >> xi⟩⟨↑⟩).
+      { by asimpl. }
+      rewrite HeqA.
+      apply r_wfVarN; assumption.
+Qed.
+
+Lemma r_up_ren_ctx : forall Γ Δ xi A,
+  [Δ |-r A⟨xi⟩] ->
+  r_ren_ctx Γ Δ xi ->
+  r_ren_ctx (Γ ,,r A) (Δ ,,r A⟨xi⟩) (up_ren xi).
+Proof.
+  intros Γ Δ xi A HwfA Hren.
+  simpl. split.
+  - apply r_ren_ctx_ext with (xi := xi >> shift).
+    + intros x. asimpl. reflexivity.
+    + apply r_weak_ren_ctx; assumption.
+  - assert (HeqA : A⟨shift >> up_ren xi⟩ = A⟨xi⟩⟨↑⟩).
+    { by asimpl. }
+    rewrite HeqA.
+    apply r_wfVar0. exact HwfA.
+Qed.
+
+Lemma r_ren_ctx_id : forall Γ, [|-r Γ] -> r_ren_ctx Γ Γ id.
+Proof.
+  induction Γ as [| A Γ']; intros Hwf.
+  - exact I.
+  - inversion Hwf; subst. simpl. split.
+    + apply r_ren_ctx_ext with (xi := id >> shift).
+      * intro x. cbn. reflexivity.
+      * apply r_weak_ren_ctx.
+        -- apply IHΓ'. exact H1.
+        -- exact H2.
+    + assert (HeqA : A⟨shift >> id⟩ = A⟨↑⟩).
+      { apply extRen_russ_term. intro x. cbn. reflexivity. }
+      rewrite HeqA.
+      apply r_wfVar0. exact H2.
+Qed.
+
+Lemma r_ren_ctx_shift : forall Γ B,
+  [|-r Γ] -> [Γ |-r B] -> r_ren_ctx Γ (Γ ,,r B) shift.
+Proof.
+  intros Γ B HwfΓ HwfB.
+  apply r_ren_ctx_ext with (xi := id >> shift).
+  - intro x; reflexivity.
+  - apply r_weak_ren_ctx.
+    + apply r_ren_ctx_id. exact HwfΓ.
+    + exact HwfB.
+Qed.
+
+Lemma r_renaming_mutual :
+  (forall Γ (H : [ |-r Γ ]), unit) *
+  (
+    (forall Γ A (H : [ Γ |-r A ]) Δ xi, r_ren_ctx Γ Δ xi -> [ |-r Δ ] -> [ Δ |-r A⟨xi⟩ ]) *
+    (
+      (forall Γ a A (H : [ Γ |-r a : A ]) Δ xi, r_ren_ctx Γ Δ xi -> [ |-r Δ ] -> [ Δ |-r a⟨xi⟩ : A⟨xi⟩ ]) *
+      (
+        (forall Γ A B (H : [ Γ |-r A = B ]) Δ xi, r_ren_ctx Γ Δ xi -> [ |-r Δ ] -> [ Δ |-r A⟨xi⟩ = B⟨xi⟩ ]) *
+        (forall Γ a b A (H : [ Γ |-r a = b : A ]) Δ xi, r_ren_ctx Γ Δ xi -> [ |-r Δ ] -> [ Δ |-r a⟨xi⟩ = b⟨xi⟩ : A⟨xi⟩ ])
+      )
+    )
+  ).
+Proof.
+  apply r_mut_ind_typing.
+
+  (*  Russ_WfContextDecl  *)
+  - (* r_connil *)
+    exact tt.
+  - (* r_concons *)
+    intros Γ A HwfΓ IHΓ HwfA IHA. exact tt.
+
+  (*  Russ_WfTypeDecl  *)
+  - (* r_wfTypeU *)
+    intros Γ n HwfΓ IHΓ Δ xi Hren HwfΔ.
+    asimpl. apply r_wfTypeU. exact HwfΔ.
+  - (* r_wfTypeUniv *)
+    intros Γ n a Htypa IHa Δ xi Hren HwfΔ.
+    asimpl. eapply r_wfTypeUniv. exact (IHa Δ xi Hren HwfΔ).
+
+  (*  Russ_TypingDecl  *)
+  - (* r_wfVar0 *)
+    intros Γ A HwfA IHA Δ xi Hren HwfΔ.
+    asimpl. destruct Hren as [_ Hhead]. exact Hhead.
+  - (* r_wfVarN *)
+    intros Γ n A B HwfA IHA HtypVar IHVar Δ xi Hren HwfΔ.
+    asimpl. destruct Hren as [Htail _].
+    exact (IHVar Δ (shift >> xi) Htail HwfΔ).
+  - (* r_wfTermLambda *)
+    intros Γ A B t HwfA IHA HwfB IHB Htypt IHt Δ xi Hren HwfΔ.
+    asimpl. apply r_wfTermLambda.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHt.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+  - (* r_wfTermApp *)
+    intros Γ f a A B HwfA IHA HwfB IHB Htypf IHf Htypa IHa Δ xi Hren HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi _ ?axi : ?Tgoal ] =>
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply r_wfTermApp.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHf; eassumption.
+    + apply IHa; eassumption.
+  - (* r_wfTermConv *)
+    intros Γ t A B Htypt IHt HeqAB IHeq Δ xi Hren HwfΔ.
+    eapply r_wfTermConv.
+    + apply IHt; eassumption.
+    + apply IHeq; eassumption.
+  - (* r_wfTermProd *)
+    intros Γ n A B HtypA IHA HtypB IHB Δ xi Hren HwfΔ.
+    asimpl. apply r_wfTermProd.
+    + exact (IHA Δ xi Hren HwfΔ).
+    + assert (HwfA_ren : [Δ |-r A⟨xi⟩]).
+      { eapply r_wfTypeUniv. exact (IHA Δ xi Hren HwfΔ). }
+      exact (IHB (Δ ,,r A⟨xi⟩) (up_ren xi) (r_up_ren_ctx Γ Δ xi A HwfA_ren Hren) (r_concons HwfΔ HwfA_ren)).
+  - (* r_wfTermUniv *)
+    intros Γ n m HwfΓ IHΓ Hlt Δ xi Hren HwfΔ.
+    asimpl. apply r_wfTermUniv; eassumption.
+  - (* r_wfTermCumul *)
+    intros Γ A n m Hlt HtypA IHA Δ xi Hren HwfΔ.
+    asimpl. eapply r_wfTermCumul.
+    + exact Hlt.
+    + exact (IHA Δ xi Hren HwfΔ).
+
+  (*  Russ_ConvTypeDecl  *)
+  - (* r_TypePiCong *)
+    intros Γ A B C D HwfA IHA HeqAB IHAB HeqCD IHCD Δ xi Hren HwfΔ.
+    asimpl. apply r_TypePiCong.
+    + apply IHA; eassumption.
+    + apply IHAB; eassumption.
+    + apply IHCD.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+  - (* r_TypeRefl *)
+    intros Γ A HwfA IHA Δ xi Hren HwfΔ.
+    apply r_TypeRefl. apply IHA; eassumption.
+  - (* r_TypeSym *)
+    intros Γ A B HeqAB IHAB Δ xi Hren HwfΔ.
+    apply r_TypeSym. apply IHAB; eassumption.
+  - (* r_TypeTrans *)
+    intros Γ A B C HeqAB IHAB HeqBC IHBC Δ xi Hren HwfΔ.
+    eapply r_TypeTrans.
+    + apply IHAB; eassumption.
+    + apply IHBC; eassumption.
+  - (* r_TypeUnivConv *)
+    intros Γ A B n HeqAB IHAB Δ xi Hren HwfΔ.
+    eapply r_TypeUnivConv. exact (IHAB Δ xi Hren HwfΔ).
+
+  (*  Russ_ConvTermDecl  *)
+  - (* r_TermBRed *)
+    intros Γ a t A B HwfA IHA Htypt IHt Htypa IHa Δ xi Hren HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi (r_Lambda _ _ ?txi) ?axi = ?RHS : ?Tgoal ] =>
+        replace RHS with (subst_russ_term (axi .: r_var_term) txi) by (asimpl; reflexivity);
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply r_TermBRed.
+    + apply IHA; eassumption.
+    + apply IHt.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHa; eassumption.
+  - (* r_TermAppCong *)
+    intros Γ a b f g A B A' B' HwfA IHA HeqAA' IHAA' HeqBB' IHBB' Heqfg IHfg Heqab IHab Δ xi Hren HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi _ ?axi = _ : ?Tgoal ] =>
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply r_TermAppCong.
+    + apply IHA; eassumption.
+    + apply IHAA'; eassumption.
+    + apply IHBB'.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + exact (IHfg Δ xi Hren HwfΔ).
+    + exact (IHab Δ xi Hren HwfΔ).
+  - (* r_TermLambdaCong *)
+    intros Γ t u A A' B' B HwfA IHA HeqAA' IHAA' HeqBB' IHBB' Heqtu IHtu Δ xi Hren HwfΔ.
+    asimpl. apply r_TermLambdaCong.
+    + apply IHA; eassumption.
+    + apply IHAA'; eassumption.
+    + apply IHBB'.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHtu.
+      * apply (r_up_ren_ctx Γ Δ xi A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+  - (* r_TermPiCong *)
+    intros Γ A B C D n HtypA IHA HeqAB IHAB HeqCD IHCD Δ xi Hren HwfΔ.
+    asimpl. apply r_TermPiCong.
+    + exact (IHA Δ xi Hren HwfΔ).
+    + exact (IHAB Δ xi Hren HwfΔ).
+    + assert (HwfA_ren : [Δ |-r A⟨xi⟩]).
+      { eapply r_wfTypeUniv. exact (IHA Δ xi Hren HwfΔ). }
+      exact (IHCD (Δ ,,r A⟨xi⟩) (up_ren xi) (r_up_ren_ctx Γ Δ xi A HwfA_ren Hren) (r_concons HwfΔ HwfA_ren)).
+  - (* r_TermFunEta *)
+    intros Γ f A B Htypf IHf Δ xi Hren HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_Lambda ?Axi ?Bxi ?Body = ?fxi : r_Prod _ _ ] =>
+        replace Body with (r_App (ren_russ_term shift Axi) (ren_russ_term (up_ren shift) Bxi) (ren_russ_term shift fxi) (r_var_term 0)) by (asimpl; reflexivity)
+    end.
+    apply r_TermFunEta. exact (IHf Δ xi Hren HwfΔ).
+  - (* r_TermRefl *)
+    intros Γ t A Htypt IHt Δ xi Hren HwfΔ.
+    apply r_TermRefl. apply IHt; eassumption.
+  - (* r_ConvConv *)
+    intros Γ t t' A B Heqtt' IHtt' HeqAB IHAB Δ xi Hren HwfΔ.
+    eapply r_ConvConv.
+    + apply IHtt'; eassumption.
+    + apply IHAB; eassumption.
+  - (* r_TermSym *)
+    intros Γ t t' A Heqtt' IHtt' Δ xi Hren HwfΔ.
+    apply r_TermSym. apply IHtt'; eassumption.
+  - (* r_TermTrans *)
+    intros Γ t t' t'' A Heqtt' IHtt' Heqt't'' IHt't'' Δ xi Hren HwfΔ.
+    eapply r_TermTrans.
+    + apply IHtt'; eassumption.
+    + apply IHt't''; eassumption.
+  - (* r_TermUnivCumul *)
+    intros Γ A B p n HeqAB IHAB Hlt Δ xi Hren HwfΔ.
+    asimpl. eapply r_TermUnivCumul.
+    + exact (IHAB Δ xi Hren HwfΔ).
+    + exact Hlt.
+Qed.
+
+Lemma r_weak_term_lemma : forall Γ a A B,
+  [Γ |-r a : A] ->
+  [Γ |-r B] ->
+  [Γ ,,r B |-r a⟨↑⟩ : A⟨↑⟩].
+Proof.
+  intros Γ a A B Htyp HwfB.
+  pose proof (r_inv_wfcontext_typing _ _ _ Htyp) as [_ HwfΓ].
+  apply (fst (snd (snd r_renaming_mutual))) with (Γ := Γ).
+  - exact Htyp.
+  - apply r_ren_ctx_shift; assumption.
+  - apply r_concons; assumption.
+Qed.
+
+Lemma r_weak_cong : forall Γ A B C,
+  [Γ |-r A = B] ->
+  [Γ |-r C] ->
+  [Γ ,,r C |-r A⟨↑⟩ = B⟨↑⟩].
+Proof.
+  intros Γ A B C HAB HwfC.
+  apply r_inv_wfcontext_wftype in HwfC; destruct HwfC.
+  apply (fst (snd (snd (snd r_renaming_mutual)))) with (Γ := Γ).
+  - exact HAB.
+  - apply r_ren_ctx_shift; assumption.
+  - apply r_concons; assumption.
+Qed.
+
+Lemma r_weak_lemma : forall Γ A B,
+  [Γ |-r A] ->
+  [Γ |-r B] ->
+  [Γ ,,r B |-r A⟨↑⟩].
+Proof.
+  intros Γ A B HwfA HwfB.
+  pose proof (r_inv_wfcontext_wftype _ _ HwfA) as [_ HwfΓ].
+  apply (fst (snd r_renaming_mutual)) with (Γ := Γ).
+  - exact HwfA.
+  - apply r_ren_ctx_shift; assumption.
+  - apply r_concons; assumption.
+Qed.
+
+Lemma r_weak_term_eq_lemma : forall Γ a b A B,
+  [Γ |-r a = b : A] ->
+  [Γ |-r B] ->
+  [Γ ,,r B |-r a⟨↑⟩ = b⟨↑⟩ : A⟨↑⟩].
+Proof.
+  intros Γ a b A B Heq HwfB.
+  pose proof (r_inv_wfcontext_wftype _ _ HwfB) as [_ HwfΓ].
+  apply (snd (snd (snd (snd r_renaming_mutual)))) with (Γ := Γ).
+  - exact Heq.
+  - apply r_ren_ctx_shift; assumption.
+  - apply r_concons; assumption.
+Qed.
+
+Fixpoint r_subst_ctx (Γ Δ : russ_ctx) (sigma : nat -> russ_term) : Type :=
+  match Γ with
+  | nil => True
+  | A :: Γ' => r_subst_ctx Γ' Δ (shift >> sigma) × [Δ |-r sigma 0 : A[shift >> sigma]]
+  end.
+
+Lemma r_subst_ctx_ext : forall Γ Δ sigma tau,
+  (forall x, sigma x = tau x) ->
+  r_subst_ctx Γ Δ sigma ->
+  r_subst_ctx Γ Δ tau.
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma tau Heq Hsubst.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply IHΓ' with (sigma := shift >> sigma).
+      * intro x. exact (Heq (S x)).
+      * exact Htail.
+    + rewrite <- (Heq 0).
+      assert (HeqA : A[shift >> sigma] = A[shift >> tau]).
+      { apply ext_russ_term. intro x. exact (Heq (S x)). }
+      rewrite <- HeqA. exact Hhead.
+Qed.
+
+Lemma r_weak_subst_ctx : forall Γ Δ sigma B,
+  r_subst_ctx Γ Δ sigma ->
+  [Δ |-r B] ->
+  r_subst_ctx Γ (Δ ,,r B) (fun x => (sigma x)⟨↑⟩).
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma B Hsubst HwfB.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply r_subst_ctx_ext with (sigma := fun x => (sigma (S x))⟨↑⟩).
+      * intro x. reflexivity.
+      * apply IHΓ'; assumption.
+    + assert (HeqA : A[shift >> (fun x => (sigma x)⟨↑⟩)] = A[shift >> sigma]⟨↑⟩).
+      { asimpl. reflexivity. }
+      rewrite HeqA.
+      eapply r_weak_term_lemma; eassumption.
+Qed.
+
+Lemma r_up_subst_ctx : forall Γ Δ sigma A,
+  [Δ |-r A[sigma]] ->
+  r_subst_ctx Γ Δ sigma ->
+  r_subst_ctx (Γ ,,r A) (Δ ,,r A[sigma]) (up_russ_term_russ_term sigma).
+Proof.
+  intros Γ Δ sigma A HwfA Hsubst.
+  simpl. split.
+  - apply r_subst_ctx_ext with (sigma := fun x => (sigma x)⟨↑⟩).
+    + intros x. asimpl. reflexivity.
+    + apply r_weak_subst_ctx; assumption.
+  - assert (HeqA : A[shift >> up_russ_term_russ_term sigma] = A[sigma]⟨↑⟩) by (asimpl; reflexivity).
+    rewrite HeqA.
+    apply r_wfVar0. exact HwfA.
+Qed.
+
+Lemma r_substitution_mutual :
+  (forall Γ (H : [ |-r Γ ]), unit) *
+  (
+    (forall Γ A (H : [ Γ |-r A ]) Δ sigma, r_subst_ctx Γ Δ sigma -> [ |-r Δ ] -> [ Δ |-r A[sigma] ]) *
+    (
+      (forall Γ a A (H : [ Γ |-r a : A ]) Δ sigma, r_subst_ctx Γ Δ sigma -> [ |-r Δ ] -> [ Δ |-r a[sigma] : A[sigma] ]) *
+      (
+        (forall Γ A B (H : [ Γ |-r A = B ]) Δ sigma, r_subst_ctx Γ Δ sigma -> [ |-r Δ ] -> [ Δ |-r A[sigma] = B[sigma] ]) *
+        (forall Γ a b A (H : [ Γ |-r a = b : A ]) Δ sigma, r_subst_ctx Γ Δ sigma -> [ |-r Δ ] -> [ Δ |-r a[sigma] = b[sigma] : A[sigma] ])
+      )
+    )
+  ).
+Proof.
+  apply r_mut_ind_typing.
+
+  (*  Russ_WfContextDecl  *)
+  - (* r_connil *)
+    exact tt.
+  - (* r_concons *)
+    intros Γ A HwfΓ IHΓ HwfA IHA. exact tt.
+
+  (*  Russ_WfTypeDecl  *)
+  - (* r_wfTypeU *)
+    intros Γ n HwfΓ IHΓ Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_wfTypeU. exact HwfΔ.
+  - (* r_wfTypeUniv *)
+    intros Γ n a Htypa IHa Δ sigma Hsubst HwfΔ.
+    asimpl. eapply r_wfTypeUniv. exact (IHa Δ sigma Hsubst HwfΔ).
+
+  (*  Russ_TypingDecl  *)
+  - (* r_wfVar0 *)
+    intros Γ A HwfA IHA Δ sigma Hsubst HwfΔ.
+    asimpl. destruct Hsubst as [_ Hhead]. exact Hhead.
+  - (* r_wfVarN *)
+    intros Γ n A B HwfA IHA HtypVar IHVar Δ sigma Hsubst HwfΔ.
+    asimpl. destruct Hsubst as [Htail _].
+    exact (IHVar Δ (shift >> sigma) Htail HwfΔ).
+  - (* r_wfTermLambda *)
+    intros Γ A B t HwfA IHA HwfB IHB Htypt IHt Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_wfTermLambda.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHt.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+  - (* r_wfTermApp *)
+    intros Γ f a A B HwfA IHA HwfB IHB Htypf IHf Htypa IHa Δ sigma Hsubst HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi _ ?axi : ?Tgoal ] =>
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply r_wfTermApp.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHf; eassumption.
+    + apply IHa; eassumption.
+  - (* r_wfTermConv *)
+    intros Γ t A B Htypt IHt HeqAB IHeq Δ sigma Hsubst HwfΔ.
+    eapply r_wfTermConv.
+    + apply IHt; eassumption.
+    + apply IHeq; eassumption.
+  - (* r_wfTermProd *)
+    intros Γ n A B HtypA IHA HtypB IHB Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_wfTermProd.
+    + exact (IHA Δ sigma Hsubst HwfΔ).
+    + assert (HwfA_sub : [Δ |-r A[sigma]]).
+      { eapply r_wfTypeUniv. exact (IHA Δ sigma Hsubst HwfΔ). }
+      exact (IHB (Δ ,,r A[sigma]) (up_russ_term_russ_term sigma) (r_up_subst_ctx Γ Δ sigma A HwfA_sub Hsubst) (r_concons HwfΔ HwfA_sub)).
+  - (* r_wfTermUniv *)
+    intros Γ n m HwfΓ IHΓ Hlt Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_wfTermUniv; eassumption.
+  - (* r_wfTermCumul *)
+    intros Γ A n m Hlt HtypA IHA Δ sigma Hsubst HwfΔ.
+    asimpl. eapply r_wfTermCumul.
+    + exact Hlt.
+    + exact (IHA Δ sigma Hsubst HwfΔ).
+
+  (*  Russ_ConvTypeDecl  *)
+  - (* r_TypePiCong *)
+    intros Γ A B C D HwfA IHA HeqAB IHAB HeqCD IHCD Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_TypePiCong.
+    + apply IHA; eassumption.
+    + apply IHAB; eassumption.
+    + apply IHCD.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+  - (* r_TypeRefl *)
+    intros Γ A HwfA IHA Δ sigma Hsubst HwfΔ.
+    apply r_TypeRefl. apply IHA; eassumption.
+  - (* r_TypeSym *)
+    intros Γ A B HeqAB IHAB Δ sigma Hsubst HwfΔ.
+    apply r_TypeSym. apply IHAB; eassumption.
+  - (* r_TypeTrans *)
+    intros Γ A B C HeqAB IHAB HeqBC IHBC Δ sigma Hsubst HwfΔ.
+    eapply r_TypeTrans.
+    + apply IHAB; eassumption.
+    + apply IHBC; eassumption.
+  - (* r_TypeUnivConv *)
+    intros Γ A B n HeqAB IHAB Δ sigma Hsubst HwfΔ.
+    eapply r_TypeUnivConv. exact (IHAB Δ sigma Hsubst HwfΔ).
+
+  (*  Russ_ConvTermDecl  *)
+  - (* r_TermBRed *)
+    intros Γ a t A B HwfA IHA Htypt IHt Htypa IHa Δ sigma Hsubst HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi (r_Lambda _ _ ?txi) ?axi = ?RHS : ?Tgoal ] =>
+        replace RHS with (subst_russ_term (axi .: r_var_term) txi) by (asimpl; reflexivity);
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply r_TermBRed.
+    + apply IHA; eassumption.
+    + apply IHt.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHa; eassumption.
+  - (* r_TermAppCong *)
+    intros Γ a b f g A B A' B' HwfA IHA HeqAA' IHAA' HeqBB' IHBB' Heqfg IHfg Heqab IHab Δ sigma Hsubst HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi _ ?axi = _ : ?Tgoal ] =>
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    apply r_TermAppCong.
+    + apply IHA; eassumption.
+    + apply IHAA'; eassumption.
+    + apply IHBB'.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + exact (IHfg Δ sigma Hsubst HwfΔ).
+    + exact (IHab Δ sigma Hsubst HwfΔ).
+  - (* r_TermLambdaCong *)
+    intros Γ t u A A' B' B HwfA IHA HeqAA' IHAA' HeqBB' IHBB' Heqtu IHtu Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_TermLambdaCong.
+    + apply IHA; eassumption.
+    + apply IHAA'; eassumption.
+    + apply IHBB'.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+    + apply IHtu.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [apply IHA; eassumption | eassumption].
+      * apply r_concons; [eassumption | apply IHA; eassumption].
+  - (* r_TermPiCong *)
+    intros Γ A B C D n HtypA IHA HeqAB IHAB HeqCD IHCD Δ sigma Hsubst HwfΔ.
+    asimpl. apply r_TermPiCong.
+    + exact (IHA Δ sigma Hsubst HwfΔ).
+    + exact (IHAB Δ sigma Hsubst HwfΔ).
+    + assert (HwfA_sub : [Δ |-r A[sigma]]).
+      { eapply r_wfTypeUniv. exact (IHA Δ sigma Hsubst HwfΔ). }
+      exact (IHCD (Δ ,,r A[sigma]) (up_russ_term_russ_term sigma) (r_up_subst_ctx Γ Δ sigma A HwfA_sub Hsubst) (r_concons HwfΔ HwfA_sub)).
+  - (* r_TermFunEta *)
+    intros Γ f A B Htypf IHf Δ sigma Hsubst HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_Lambda ?Axi ?Bxi ?Body = ?fxi : r_Prod _ _ ] =>
+        replace Body with (r_App (ren_russ_term shift Axi) (ren_russ_term (up_ren shift) Bxi) (ren_russ_term shift fxi) (r_var_term 0)) by (asimpl; reflexivity)
+    end.
+    apply r_TermFunEta. exact (IHf Δ sigma Hsubst HwfΔ).
+  - (* r_TermRefl *)
+    intros Γ t A Htypt IHt Δ sigma Hsubst HwfΔ.
+    apply r_TermRefl. apply IHt; eassumption.
+  - (* r_ConvConv *)
+    intros Γ t t' A B Heqtt' IHtt' HeqAB IHAB Δ sigma Hsubst HwfΔ.
+    eapply r_ConvConv.
+    + apply IHtt'; eassumption.
+    + apply IHAB; eassumption.
+  - (* r_TermSym *)
+    intros Γ t t' A Heqtt' IHtt' Δ sigma Hsubst HwfΔ.
+    apply r_TermSym. apply IHtt'; eassumption.
+  - (* r_TermTrans *)
+    intros Γ t t' t'' A Heqtt' IHtt' Heqt't'' IHt't'' Δ sigma Hsubst HwfΔ.
+    eapply r_TermTrans.
+    + apply IHtt'; eassumption.
+    + apply IHt't''; eassumption.
+  - (* r_TermUnivCumul *)
+    intros Γ A B p n HeqAB IHAB Hlt Δ sigma Hsubst HwfΔ.
+    asimpl. eapply r_TermUnivCumul.
+    + exact (IHAB Δ sigma Hsubst HwfΔ).
+    + exact Hlt.
+Qed.
+
+Lemma r_subst_ctx_id : forall Γ, [|-r Γ] -> r_subst_ctx Γ Γ r_var_term.
+Proof.
+  induction Γ as [| A Γ']; intros Hwf.
+  - exact I.
+  - inversion Hwf; subst. simpl. split.
+    + apply r_subst_ctx_ext with (sigma := fun x => (r_var_term x)⟨↑⟩).
+      * intro x. reflexivity.
+      * apply r_weak_subst_ctx.
+        -- apply IHΓ'. exact H1.
+        -- exact H2.
+    + assert (HeqA : A[shift >> r_var_term] = A⟨↑⟩).
+      { symmetry. apply rinstInst'_russ_term. }
+      rewrite HeqA.
+      apply r_wfVar0. exact H2.
+Qed.
+
+Lemma r_subst_ctx_single : forall Γ A a,
+  [|-r Γ] ->
+  [Γ |-r a : A] ->
+  r_subst_ctx (Γ ,,r A) Γ (a..).
+Proof.
+  intros Γ A a HwfΓ Htypa.
+  simpl. split.
+  - apply r_subst_ctx_ext with (sigma := r_var_term).
+    + intro x. reflexivity.
+    + apply r_subst_ctx_id. exact HwfΓ.
+  - assert (HeqA : A[shift >> (a..)] = A) by (asimpl; reflexivity).
+    rewrite HeqA.
+    exact Htypa.
+Qed.
+
+Lemma r_substitution_lemma :
+    forall {Γ A B a},
+    [ Γ ,,r A |-r B ] ->
+    [ Γ |-r a : A ] ->
+    [ Γ |-r B[a..] ].
+Proof.
+  intros Γ A B a HwfB Htypa.
+  pose proof (r_inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd r_substitution_mutual)) with (Γ := Γ ,,r A).
+  - exact HwfB.
+  - apply r_subst_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Lemma r_substitution_lemma_term :
+    forall {Γ A B a t},
+    [ Γ ,,r A |-r t : B ] ->
+    [ Γ |-r a : A ] ->
+    [ Γ |-r t[a..] : B[a..] ].
+Proof.
+  intros Γ A B a t Htypt Htypa.
+  pose proof (r_inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd (snd r_substitution_mutual))) with (Γ := Γ ,,r A).
+  - exact Htypt.
+  - apply r_subst_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Lemma r_subst_cong_same :
+    forall {Γ A B B' a},
+    [ Γ ,,r A |-r B = B' ] ->
+    [ Γ |-r a : A ] ->
+    [ Γ |-r B[a..] = B'[a..] ].
+Proof.
+  intros Γ A B B' a HeqB Htypa.
+  pose proof (r_inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd (snd (snd r_substitution_mutual)))) with (Γ := Γ ,,r A).
+  - exact HeqB.
+  - apply r_subst_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Fixpoint r_subst_eq_ctx (Γ Δ : russ_ctx) (sigma tau : nat -> russ_term) : Type :=
+  match Γ with
+  | nil => True
+  | A :: Γ' => r_subst_eq_ctx Γ' Δ (shift >> sigma) (shift >> tau) × [Δ |-r sigma 0 = tau 0 : A[shift >> sigma]]
+  end.
+
+Lemma r_subst_eq_ctx_ext : forall Γ Δ sigma sigma' tau tau',
+  (forall x, sigma x = sigma' x) ->
+  (forall x, tau x = tau' x) ->
+  r_subst_eq_ctx Γ Δ sigma tau ->
+  r_subst_eq_ctx Γ Δ sigma' tau'.
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma sigma' tau tau' Heq1 Heq2 Hsubst.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply IHΓ' with (sigma := shift >> sigma) (tau := shift >> tau).
+      * intro x. exact (Heq1 (S x)).
+      * intro x. exact (Heq2 (S x)).
+      * exact Htail.
+    + rewrite <- (Heq1 0). rewrite <- (Heq2 0).
+      assert (HeqA : A[shift >> sigma] = A[shift >> sigma']).
+      { apply ext_russ_term. intro x. exact (Heq1 (S x)). }
+      rewrite <- HeqA. exact Hhead.
+Qed.
+
+Lemma r_weak_subst_eq_ctx : forall Γ Δ sigma tau B,
+  r_subst_eq_ctx Γ Δ sigma tau ->
+  [Δ |-r B] ->
+  r_subst_eq_ctx Γ (Δ ,,r B) (fun x => (sigma x)⟨↑⟩) (fun x => (tau x)⟨↑⟩).
+Proof.
+  induction Γ as [| A Γ']; intros Δ sigma tau B Hsubst HwfB.
+  - exact I.
+  - simpl in *. destruct Hsubst as [Htail Hhead].
+    split.
+    + apply r_subst_eq_ctx_ext with (sigma := fun x => (sigma (S x))⟨↑⟩) (tau := fun x => (tau (S x))⟨↑⟩).
+      * intro x. reflexivity.
+      * intro x. reflexivity.
+      * apply IHΓ'; assumption.
+    + assert (HeqA : A[shift >> (fun x => (sigma x)⟨↑⟩)] = A[shift >> sigma]⟨↑⟩).
+      { asimpl. reflexivity. }
+      rewrite HeqA.
+      eapply r_weak_term_eq_lemma; eassumption.
+Qed.
+
+Lemma r_up_subst_eq_ctx : forall Γ Δ sigma tau A,
+  [Δ |-r A[sigma]] ->
+  r_subst_eq_ctx Γ Δ sigma tau ->
+  r_subst_eq_ctx (Γ ,,r A) (Δ ,,r A[sigma]) (up_russ_term_russ_term sigma) (up_russ_term_russ_term tau).
+Proof.
+  intros Γ Δ sigma tau A HwfA Hsubst.
+  simpl. split.
+  - apply r_subst_eq_ctx_ext with (sigma := fun x => (sigma x)⟨↑⟩) (tau := fun x => (tau x)⟨↑⟩).
+    + intros x. asimpl. reflexivity.
+    + intros x. asimpl. reflexivity.
+    + apply r_weak_subst_eq_ctx; assumption.
+  - assert (HeqA : A[shift >> up_russ_term_russ_term sigma] = A[sigma]⟨↑⟩) by (asimpl; reflexivity).
+    rewrite HeqA.
+    apply r_TermRefl. apply r_wfVar0. exact HwfA.
+Qed.
+
+Lemma r_subst_eq_mutual :
+  (forall Γ (H : [ |-r Γ ]), unit) *
+  (
+    (forall Γ A (H : [ Γ |-r A ]) Δ sigma tau,
+      r_subst_ctx Γ Δ sigma -> r_subst_eq_ctx Γ Δ sigma tau -> [ |-r Δ ] -> [ Δ |-r A[sigma] = A[tau] ]) *
+    (
+      (forall Γ a A (H : [ Γ |-r a : A ]) Δ sigma tau,
+        r_subst_ctx Γ Δ sigma -> r_subst_eq_ctx Γ Δ sigma tau -> [ |-r Δ ] -> [ Δ |-r a[sigma] = a[tau] : A[sigma] ]) *
+      (
+        (forall Γ A B (H : [ Γ |-r A = B ]), unit) *
+        (forall Γ a b A (H : [ Γ |-r a = b : A ]), unit)
+      )
+    )
+  ).
+Proof.
+  apply r_mut_ind_typing.
+
+  (*  Russ_WfContextDecl  *)
+  - (* r_connil *)
+    exact tt.
+  - (* r_concons *)
+    intros; exact tt.
+
+  (*  Russ_WfTypeDecl  *)
+  - (* r_wfTypeU *)
+    intros Γ n HwfΓ IHΓ Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. apply r_TypeRefl. apply r_wfTypeU. exact HwfΔ.
+  - (* r_wfTypeUniv *)
+    intros Γ n a Htypa IHa Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. eapply r_TypeUnivConv. exact (IHa Δ sigma tau Hsubst Heq HwfΔ).
+
+  (*  Russ_TypingDecl  *)
+  - (* r_wfVar0 *)
+    intros Γ A HwfA IHA Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. destruct Heq as [_ Hhead]. exact Hhead.
+  - (* r_wfVarN *)
+    intros Γ n A B HwfA IHA HtypVar IHVar Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. destruct Hsubst as [Hsubst_tail _]. destruct Heq as [Heq_tail _].
+    exact (IHVar Δ (shift >> sigma) (shift >> tau) Hsubst_tail Heq_tail HwfΔ).
+  - (* r_wfTermLambda *)
+    intros Γ A B t HwfA IHA HwfB IHB Htypt IHt Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    assert (HwfA_sub : [Δ |-r A[sigma]]).
+    { exact (fst (snd r_substitution_mutual) Γ A HwfA Δ sigma Hsubst HwfΔ). }
+    apply r_TermLambdaCong.
+    + exact HwfA_sub.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (r_up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply r_concons; [eassumption | exact HwfA_sub].
+    + apply IHt.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (r_up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply r_concons; [eassumption | exact HwfA_sub].
+  - (* r_wfTermApp *)
+    intros Γ f a A B HwfA IHA HwfB IHB Htypf IHf Htypa IHa Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    match goal with
+    | |- [ _ |-r r_App _ ?Bxi _ ?axi = _ : ?Tgoal ] =>
+        replace Tgoal with (subst_russ_term (axi .: r_var_term) Bxi) by (asimpl; reflexivity)
+    end.
+    assert (HwfA_sub : [Δ |-r A[sigma]]).
+    { exact (fst (snd r_substitution_mutual) Γ A HwfA Δ sigma Hsubst HwfΔ). }
+    apply r_TermAppCong.
+    + exact HwfA_sub.
+    + apply IHA; eassumption.
+    + apply IHB.
+      * apply (r_up_subst_ctx Γ Δ sigma A); [exact HwfA_sub | eassumption].
+      * apply (r_up_subst_eq_ctx Γ Δ sigma tau A); [exact HwfA_sub | eassumption].
+      * apply r_concons; [eassumption | exact HwfA_sub].
+    + exact (IHf Δ sigma tau Hsubst Heq HwfΔ).
+    + exact (IHa Δ sigma tau Hsubst Heq HwfΔ).
+  - (* r_wfTermConv *)
+    intros Γ t A B Htypt IHt HeqAB IHeq Δ sigma tau Hsubst Heq HwfΔ.
+    eapply r_ConvConv.
+    + apply IHt; eassumption.
+    + exact (fst (snd (snd (snd r_substitution_mutual))) Γ A B HeqAB Δ sigma Hsubst HwfΔ).
+  - (* r_wfTermProd *)
+    intros Γ n A B HtypA IHA HtypB IHB Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl.
+    assert (HtypA_sub : [Δ |-r A[sigma] : r_U n]).
+    { exact (fst (snd (snd r_substitution_mutual)) Γ A (r_U n) HtypA Δ sigma Hsubst HwfΔ). }
+    assert (HwfA_sub : [Δ |-r A[sigma]]).
+    { eapply r_wfTypeUniv. exact HtypA_sub. }
+    apply r_TermPiCong.
+    + exact HtypA_sub.
+    + exact (IHA Δ sigma tau Hsubst Heq HwfΔ).
+    + exact (IHB (Δ ,,r A[sigma]) (up_russ_term_russ_term sigma) (up_russ_term_russ_term tau) (r_up_subst_ctx Γ Δ sigma A HwfA_sub Hsubst) (r_up_subst_eq_ctx Γ Δ sigma tau A HwfA_sub Heq) (r_concons HwfΔ HwfA_sub)).
+  - (* r_wfTermUniv *)
+    intros Γ n m HwfΓ IHΓ Hlt Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. apply r_TermRefl. apply r_wfTermUniv; eassumption.
+  - (* r_wfTermCumul *)
+    intros Γ A n m Hlt HtypA IHA Δ sigma tau Hsubst Heq HwfΔ.
+    asimpl. eapply r_TermUnivCumul.
+    + exact (IHA Δ sigma tau Hsubst Heq HwfΔ).
+    + exact Hlt.
+
+  (*  Russ_ConvTypeDecl (5)  *)
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+
+  (*  Russ_ConvTermDecl (10)  *)
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+  - intros; exact tt.
+Qed.
+
+Lemma r_subst_eq_ctx_id : forall Γ, [|-r Γ] -> r_subst_eq_ctx Γ Γ r_var_term r_var_term.
+Proof.
+  induction Γ as [| A Γ']; intros Hwf.
+  - exact I.
+  - inversion Hwf; subst. simpl. split.
+    + apply r_subst_eq_ctx_ext with (sigma := fun x => (r_var_term x)⟨↑⟩) (tau := fun x => (r_var_term x)⟨↑⟩).
+      * intro x. reflexivity.
+      * intro x. reflexivity.
+      * apply r_weak_subst_eq_ctx.
+        -- apply IHΓ'. exact H1.
+        -- exact H2.
+    + assert (HeqA : A[shift >> r_var_term] = A⟨↑⟩).
+      { symmetry. apply rinstInst'_russ_term. }
+      rewrite HeqA.
+      apply r_TermRefl. apply r_wfVar0. exact H2.
+Qed.
+
+Lemma r_subst_eq_ctx_single : forall Γ A a b,
+  [|-r Γ] ->
+  [Γ |-r a = b : A] ->
+  r_subst_eq_ctx (Γ ,,r A) Γ (a..) (b..).
+Proof.
+  intros Γ A a b HwfΓ Heqab.
+  simpl. split.
+  - apply r_subst_eq_ctx_ext with (sigma := r_var_term) (tau := r_var_term).
+    + intro x. reflexivity.
+    + intro x. reflexivity.
+    + apply r_subst_eq_ctx_id. exact HwfΓ.
+  - assert (HeqA : A[shift >> (a..)] = A) by (asimpl; reflexivity).
+    rewrite HeqA.
+    exact Heqab.
+Qed.
+
+Lemma r_subst_ty_eq :
+  forall {Γ A B a b},
+  [ Γ ,,r A |-r B ] ->
+  [ Γ |-r a : A ] ->
+  [ Γ |-r a = b : A ] ->
+  [ Γ |-r B[a..] = B[b..] ].
+Proof.
+  intros Γ A B a b HwfB Htypa Heqab.
+  pose proof (r_inv_wfcontext_typing _ _ _ Htypa) as [_ HwfΓ].
+  apply (fst (snd r_subst_eq_mutual)) with (Γ := Γ ,,r A).
+  - exact HwfB.
+  - apply r_subst_ctx_single; assumption.
+  - apply r_subst_eq_ctx_single; assumption.
+  - exact HwfΓ.
+Qed.
+
+Lemma r_subst_cong_aux :
+  forall {Γ A B B' a b},
+  [ Γ ,,r A |-r B = B' ] ->
+  [ Γ ,,r A |-r B' ] ->
+  [ Γ |-r a : A ] ->
+  [ Γ |-r a = b : A ] ->
+  [ Γ |-r B[a..] = B'[b..] ].
+Proof.
+  intros Γ A B B' a b HeqB HwfB' Htypa Heqab.
+  eapply r_TypeTrans.
+  - eapply r_subst_cong_same; eassumption.
+  - eapply r_subst_ty_eq; eassumption.
+Qed.
+
 
 Definition r_subst_context (A B : russ_term) (Γ : russ_ctx) (Δ : russ_ctx) : russ_ctx :=
   Δ ++ (B :: Γ).
@@ -1023,7 +2727,7 @@ Proof.
 (* r_context_conversion_ty *)
   - intros Γ T H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
     + apply r_wfTypeU. eapply r_context_conversion_ctx; eauto.
-    +  eapply r_wfTypeUniv. eapply r_context_conversion_term; eauto.
+    + eapply r_wfTypeUniv. eapply r_context_conversion_term; eauto.
 
   (* r_context_conversion_term *)
   - intros Γ t T H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
@@ -1033,6 +2737,7 @@ Proof.
         eapply r_wfTermConv.
         ** apply r_wfVar0. apply r_type_defeq_inv in Hconv. destruct Hconv as [_ [_ HwfB]]. auto.
         ** apply r_TypeSym. apply r_weak_cong. exact Hconv.
+           apply r_type_defeq_inv in Hconv. destruct Hconv as [_ [_ HwfB]]. exact HwfB.
       * simpl. injection Heq. intros. subst.
         apply r_wfVar0. eapply r_context_conversion_ty; eauto.
     + rename A into T_head.
@@ -1047,8 +2752,11 @@ Proof.
         ** eapply IHRuss_TypingDecl with (Δ := Δ0); auto.
     + apply r_wfTermLambda.
       * eapply r_context_conversion_ty; eauto.
+      * eapply r_context_conversion_ty with (Δ := Δ0 ,,r A); eauto. simpl. reflexivity.
       * eapply IHRuss_TypingDecl with (Δ := Δ0 ,,r A); eauto. simpl. reflexivity.
     + eapply r_wfTermApp.
+      * eapply r_context_conversion_ty; eauto.
+      * eapply r_context_conversion_ty with (Δ := Δ0 ,,r A); eauto. simpl. reflexivity.
       * eapply IHRuss_TypingDecl1; eauto.
       * eapply IHRuss_TypingDecl2; eauto.
     + eapply r_wfTermConv.
@@ -1058,7 +2766,7 @@ Proof.
       * eapply IHRuss_TypingDecl1; eauto.
       * eapply IHRuss_TypingDecl2 with (Δ := Δ0 ,,r A); eauto. simpl. reflexivity.
     + apply r_wfTermUniv; auto. eapply r_context_conversion_ctx; eauto.
-    + eapply r_wfTermCumul; auto. auto.
+    + eapply r_wfTermCumul; auto. assumption.
 
   (* r_context_conversion_ty_eq *)
   - intros Γ T1 T2 H. induction H; intros Γ'0 A0 B0 Δ0 Heq Hconv; subst.
@@ -1078,6 +2786,7 @@ Proof.
       * eapply r_context_conversion_term with (Δ := Δ0 ,,r A); eauto. simpl. reflexivity.
       * eapply r_context_conversion_term; eauto.
     + eapply r_TermAppCong.
+      * eapply r_context_conversion_ty; eauto.
       * eapply r_context_conversion_ty_eq; eauto.
       * eapply r_context_conversion_ty_eq with (Δ := Δ0 ,,r A); eauto. simpl. reflexivity.
       * eapply IHRuss_ConvTermDecl1; eauto.
@@ -1098,30 +2807,26 @@ Proof.
        * eapply r_context_conversion_ty_eq; eauto.
     + apply r_TermSym; eauto.
     + eapply r_TermTrans; eauto.
-    + eapply r_TermUnivCumul; auto. 
+    + eapply r_TermUnivCumul; auto.
 
-(* r_type_defeq_inv *)
+  (* r_type_defeq_inv *)
   - intros H. induction H.
     + destruct IHRuss_ConvTypeDecl1 as [HeqAB [HwfA HwfB]].
       destruct IHRuss_ConvTypeDecl2 as [HeqCD [HwfC HwfD]].
       split. { apply r_TypePiCong; assumption. }
       split.
       * apply product_wf_ty; assumption.
-      * apply product_wf_ty; try assumption. 
+      * apply product_wf_ty; try assumption.
         eapply r_conv_hypothesis_wftype. exact HwfD. exact HeqAB.
-        
     + split. { apply r_TypeRefl; assumption. }
       split; assumption.
-      
     + destruct IHRuss_ConvTypeDecl as [HeqAB [HwfA HwfB]].
       split. { apply r_TypeSym; assumption. }
       split; assumption.
-      
     + destruct IHRuss_ConvTypeDecl1 as [HeqAB [HwfA HwfB]].
       destruct IHRuss_ConvTypeDecl2 as [HeqBC [HwfB' HwfC]].
       split. { eapply r_TypeTrans; eassumption. }
       split; assumption.
-      
     + apply r_typing_defeq_inv in r. destruct r as [HeqAB [HtypA HtypB]].
       split. { eapply r_TypeUnivConv. exact HeqAB. }
       split.
@@ -1131,6 +2836,7 @@ Proof.
   (* r_typing_defeq_inv *)
   - intros H. induction H.
     + (* r_TermBRed *)
+      pose proof (r_wftype_typing_inv _ _ _ r0) as [_ Hwf_B].
       split. { eapply r_TermBRed; eassumption. }
       split.
       * apply r_wfTermApp; eauto. apply r_wfTermLambda; eauto.
@@ -1138,27 +2844,36 @@ Proof.
     + (* r_TermAppCong *)
       destruct IHRuss_ConvTermDecl1 as [Heq_f [Htyp_f Htyp_g]].
       destruct IHRuss_ConvTermDecl2 as [Heq_a [Htyp_a Htyp_b]].
+      apply r_type_defeq_inv in r0. destruct r0 as [r0 [Hwf_A Hwf_A']].
+      apply r_type_defeq_inv in r1. destruct r1 as [r1 [Hwf_B Hwf_B']].
       split. { eapply r_TermAppCong; eassumption. }
       split.
       * eapply r_wfTermApp; eauto.
       * eapply r_wfTermConv. instantiate (1 := B'[b..]).
-        -- apply r_type_defeq_inv in r. destruct r as [r [Hwf_A Hwf_A']].
-           apply r_type_defeq_inv in r0. destruct r0 as [r0 [_ Hwf_B']].
-           eapply r_wfTermApp.
-           ++ eapply r_wfTermConv. exact Htyp_g. apply r_TypePiCong. exact Hwf_A. apply r_TypeSym. apply r_TypeSym. exact r. apply r_TypeSym. apply r_TypeSym. exact r0.
-           ++ eapply r_wfTermConv. exact Htyp_b. apply r_TypeSym. apply r_TypeSym. exact r.
-        -- eapply r_subst_cong. apply r_TypeSym. exact r0. apply r_TermSym. exact Heq_a.
+        -- eapply r_wfTermApp.
+           ++ exact Hwf_A'.
+           ++ eapply r_conv_hypothesis_wftype. exact Hwf_B'. exact r0.
+           ++ eapply r_wfTermConv. exact Htyp_g. apply r_TypePiCong. exact Hwf_A. exact r0. exact r1.
+           ++ eapply r_wfTermConv. exact Htyp_b. exact r0.
+        -- eapply r_subst_cong_aux.
+           ++ apply r_TypeSym. exact r1.
+           ++ exact Hwf_B.
+           ++ exact Htyp_b.
+           ++ apply r_TermSym. exact Heq_a.
     + (* r_TermLambdaCong *)
       destruct IHRuss_ConvTermDecl as [Heq_tu [Htyp_t Htyp_u]].
+      apply r_type_defeq_inv in r0. destruct r0 as [r0 [Hwf_A Hwf_A']].
+      apply r_type_defeq_inv in r1. destruct r1 as [r1 [Hwf_B Hwf_B']].
       split. { apply r_TermLambdaCong; eassumption. }
       split.
       * apply r_wfTermLambda; eauto.
       * eapply r_wfTermConv. instantiate (1:=r_Prod A' B').
         -- apply r_wfTermLambda.
-           ++ apply r_type_defeq_inv in r0. destruct r0 as [? []]. auto.
+           ++ exact Hwf_A'.
+           ++ eapply r_conv_hypothesis_wftype. exact Hwf_B'. exact r0.
            ++ eapply r_conv_hypothesis_typing. eapply r_wfTermConv. exact Htyp_u. exact r1. exact r0.
-        -- apply r_TypePiCong. apply r_type_defeq_inv in r0. destruct r0 as [? []]. auto.
-           auto using r_TypeSym. eapply r_conv_hypothesis_type_eq. apply r_TypeSym. exact r1. auto using r_TypeSym.
+        -- apply r_TypePiCong. exact Hwf_A'. apply r_TypeSym. exact r0.
+           eapply r_conv_hypothesis_type_eq. apply r_TypeSym. exact r1. exact r0.
     + (* r_TermPiCong *)
       destruct IHRuss_ConvTermDecl1 as [Heq_AB [Htyp_A Htyp_B]].
       destruct IHRuss_ConvTermDecl2 as [Heq_CD [Htyp_C Htyp_D]].
@@ -1174,11 +2889,22 @@ Proof.
         apply r_prod_ty_inv in Hwf_Prod. destruct Hwf_Prod as [Hwf_A Hwf_B].
         apply r_wfTermLambda.
         -- exact Hwf_A.
+        -- exact Hwf_B.
         -- eapply r_wfTermConv.
            ++ eapply r_wfTermApp.
+              ** apply r_weak_lemma; exact Hwf_A.
+              ** pose proof (r_inv_wfcontext_wftype _ _ Hwf_A) as [_ HwfΓ].
+                 apply (fst (snd r_renaming_mutual)) with (Γ := Γ ,,r A).
+                 --- exact Hwf_B.
+                 --- apply (r_up_ren_ctx Γ (Γ ,,r A) shift A).
+                     +++ apply r_weak_lemma; exact Hwf_A.
+                     +++ apply r_ren_ctx_shift; assumption.
+                 --- apply r_concons.
+                     +++ apply r_concons; assumption.
+                     +++ apply r_weak_lemma; exact Hwf_A.
               ** assert (Hweak : [Γ,,r A |-r f⟨↑⟩ : (r_Prod A B)⟨↑⟩]).
-              {eapply r_weak_term_lemma in r. instantiate (1:=A) in r. auto. }
-              asimpl in Hweak. exact Hweak.
+                 { eapply r_weak_term_lemma in r. instantiate (1:=A) in r. exact r. exact Hwf_A. }
+                 asimpl in Hweak. exact Hweak.
               ** apply r_wfVar0. exact Hwf_A.
            ++ rewrite subst_up_var_0_russ. apply r_TypeRefl. exact Hwf_B.
       * exact r.
@@ -1211,15 +2937,14 @@ Proof.
   - intros. split.
     + exact H.
     + induction H.
-      * apply r_weak_lemma. assumption.
-      * apply r_weak_lemma. assumption.
-      * apply product_wf_ty. auto. auto. 
-      * inversion IHRuss_TypingDecl1. subst. eapply r_substitution_lemma. apply r_prod_ty_inv in IHRuss_TypingDecl1.
-        destruct IHRuss_TypingDecl1. exact r0. exact H0.
+      * apply r_weak_lemma; assumption.
+      * apply r_weak_lemma; assumption.
+      * apply product_wf_ty; assumption.
+      * eapply r_substitution_lemma; eassumption.
       * apply r_type_defeq_inv in r. destruct r as [_ [_ HwfB]]. exact HwfB.
-      * eapply r_wfTypeUniv. apply r_inv_wfcontext_wftype in IHRuss_TypingDecl1. destruct IHRuss_TypingDecl1. apply r_wfTermUniv. auto. auto.
-      * eapply r_wfTypeUniv. apply r_wfTermUniv. auto. auto.
-      * eapply r_wfTypeUniv. apply r_inv_wfcontext_wftype in IHRuss_TypingDecl. destruct IHRuss_TypingDecl. apply r_wfTermUniv. auto. auto.
+      * eapply r_wfTypeUniv. apply r_inv_wfcontext_wftype in IHRuss_TypingDecl1. destruct IHRuss_TypingDecl1. apply r_wfTermUniv; auto.
+      * eapply r_wfTypeUniv. apply r_wfTermUniv; auto.
+      * eapply r_wfTypeUniv. apply r_inv_wfcontext_wftype in IHRuss_TypingDecl. destruct IHRuss_TypingDecl. apply r_wfTermUniv; auto.
 
   (* r_wftype_hypothesis_inv *)
   - intros. remember (Γ ,,r A) as Γ' in H.
@@ -1227,21 +2952,13 @@ Proof.
     + inversion r; subst. constructor; auto. constructor. auto.
     + split.
       * eapply r_typing_hypothesis_inv in r. destruct r as [? []]. auto.
-      * eapply r_wfTypeUniv. exact r. 
+      * eapply r_wfTypeUniv. exact r.
 
   (* r_typing_hypothesis_inv *)
   - intros. split.
     + apply r_inv_wfcontext_typing in H. inversion H. inversion H1. auto.
     + split.
-      * inversion H; subst.
-        ** assumption.
-        ** assumption.
-        ** apply r_inv_wfcontext_typing in H. inversion H. inversion H3. auto.
-        ** apply r_inv_wfcontext_typing in H. inversion H. inversion H3. auto.
-        ** apply r_inv_wfcontext_typing in H. inversion H. inversion H3. auto.
-        ** apply r_inv_wfcontext_typing in H. inversion H. inversion H3. auto.
-        ** inversion H0; subst; assumption.
-        ** apply r_inv_wfcontext_typing in H. inversion H. inversion H3. auto.
+      * apply r_inv_wfcontext_typing in H. inversion H. inversion H1. auto.
       * exact H.
 
   (* r_conv_hypothesis_wftype *)
@@ -1263,8 +2980,20 @@ Proof.
     + exact Hconv.
 
   (* r_conv_hypothesis_term_eq *)
-  - intros  Heq Hconv. eapply r_context_conversion_term_eq with (Δ := εr).
+  - intros Heq Hconv. eapply r_context_conversion_term_eq with (Δ := εr).
     + simpl. exact Heq.
     + reflexivity.
     + exact Hconv.
-Admitted.
+Admitted. (* Makes my vscode crash*)
+
+Lemma r_subst_cong :
+  forall {Γ A B B' a b},
+  [ Γ ,,r A |-r B = B' ] ->
+  [ Γ |-r a = b : A ] ->
+  [ Γ |-r B[a..] = B'[b..] ].
+Proof.
+  intros Γ A B B' a b HeqB Heqab.
+  pose proof (r_type_defeq_inv _ _ _ HeqB) as [_ [_ HwfB']].
+  pose proof (r_typing_defeq_inv _ _ _ _ Heqab) as [_ [Htypa _]].
+  eapply r_subst_cong_aux; eassumption.
+Qed.

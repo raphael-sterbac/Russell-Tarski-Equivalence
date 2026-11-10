@@ -31,15 +31,12 @@ If a judgment holds in the Russell system, there exists a unique (up to conversi
 
 ## Axioms and Assumptions
 
-As outlined in the abstract, the equivalence proof fundamentally relies on the normalisation and injectivity of type constructors for the Tarski-style theory. While normalisation can be proven via an adaptation of the gluing technique, this formalization takes normalisation and injectivity of type formers (such as `PiInj` and `UInj`) as axioms to focus purely on the equivalence proofs.
-
-At the moment, the formalisation also puts all the subsitution and weakening lemmas as axioms. It would be great to recover them from a tool such as AutoSubst, to obtain a fully self-contained proof.
+As outlined in the paper, the equivalence proof fundamentally relies on the definitional inversion properties of the syntax: injectivity and no-confusion for type constructors (only in the explicit theory). This formalization takes injectivity of type formers (`PiInj` and `UInj`) as axioms to focus purely on the equivalence proofs.
 
 ## Building the Project
 
-To check the proofs, you will need a recent version of Rocq/Coq (tested on Rocq 9.1.0).
+To check the proofs, you will need Rocq 8.20 (as this is the version working with Autosubst)
 
 ```bash
-rocq makefile -f _CoqProject -o Makefile
-
+coq_makefile -f _CoqProject -o Makefile  
 make

@@ -55,10 +55,13 @@ with TypingDecl : ctx -> term -> ty -> Type :=
         (m<=l) ->
         [Γ |- cLift m l a : U l]
     | wfTermLambda {Γ} {A B t} :
-        [ Γ |- A ] ->        
+        [ Γ |- A ] ->
+        [ Γ ,, A |- B ] ->
         [ Γ ,, A |- t : B ] -> 
         [ Γ |- Lambda A B t : Prod A B]
     | wfTermApp {Γ} {f a A B} :
+        [ Γ |- A ] ->
+        [ Γ ,, A |- B ] ->
         [ Γ |- f : Prod A B ] -> 
         [ Γ |- a : A ] -> 
         [ Γ |- App A B f a : B[a..] ]
@@ -111,6 +114,7 @@ with ConvTermDecl : ctx -> term -> term -> ty -> Type :=
         [ Γ ,, Decode n A |- C = D : U n ] ->
         [ Γ |- cProd n A C = cProd n B D : U n ]
     | TermAppCong {Γ} {a b f g A B A' B'} :
+        [ Γ |- A ] ->
         [ Γ |- A = A'] ->
         [ Γ,,A |- B = B'] ->
         [ Γ |- f = g : Prod A B ] ->
@@ -207,10 +211,13 @@ with Russ_TypingDecl : russ_ctx -> russ_term -> russ_term -> Type :=
         [Γ ,,r A |-r r_var_term (S n) : B⟨↑⟩ ]
 
     | r_wfTermLambda {Γ} {A B t} :
-        [ Γ |-r A ] ->        
+        [ Γ |-r A ] ->
+        [ Γ ,,r A |-r B ] ->
         [ Γ ,,r A |-r t : B ] -> 
         [ Γ |-r r_Lambda A B t : r_Prod A B]
     | r_wfTermApp {Γ} {f a A B} :
+        [ Γ |-r A ] ->
+        [ Γ ,,r A |-r B ] ->
         [ Γ |-r f : r_Prod A B ] -> 
         [ Γ |-r a : A ] -> 
         [ Γ |-r r_App A B f a : B[a..] ]
@@ -258,6 +265,7 @@ with Russ_ConvTermDecl : russ_ctx -> russ_term -> russ_term -> russ_term -> Type
             [ Γ |-r a : A ] ->
             [ Γ |-r r_App A B (r_Lambda A B t) a = t[a..] : B[a..] ]
     | r_TermAppCong {Γ} {a b f g A B A' B'} :
+        [ Γ |-r A ] ->
         [ Γ |-r A = A'] ->
         [ Γ,,r A |-r B = B'] ->
         [ Γ |-r f = g : r_Prod A B ] ->

@@ -160,18 +160,17 @@ Proof.
 
   (* TypingDecl *)
   - intros. simpl. eapply r_wfTermConv. apply r_wfVar0. assumption. rewrite <- defeq_erase_weak_ty. apply r_TypeRefl.
-    eapply r_weak_lemma. auto.
+    apply r_weak_lemma; assumption.
   - intros. simpl. eapply r_wfTermConv. eapply r_wfVarN. assumption. simpl in H0. exact H0. rewrite <- defeq_erase_weak_ty. apply r_TypeRefl.
-    eapply r_weak_lemma. auto.
+    apply r_weak_lemma. apply r_wftype_typing_inv in H0. destruct H0. assumption. assumption.
   - intros. simpl. constructor; assumption.
   - intros. simpl. constructor. assumption. assumption.
   - intros. simpl. destruct (Nat.eq_dec m l) as [H_eq | H_neq].
     + subst. auto.
     + assert (H_lt : m < l). lia. apply r_wfTermCumul with (1:=H_lt). assumption.  
   - intros. simpl. constructor; assumption.
-  - intros. simpl. eapply r_wfTermConv. apply r_wfTermApp. assumption. assumption. rewrite <- defeq_erase_subst_ty. apply r_TypeRefl.
-    eapply r_substitution_lemma. apply r_wftype_typing_inv in H. destruct H.
-    simpl in r0. apply r_prod_ty_inv in r0. destruct r0. exact r1. exact H0.
+  - intros. simpl. eapply r_wfTermConv. apply r_wfTermApp; assumption. rewrite <- defeq_erase_subst_ty. apply r_TypeRefl.
+    eapply r_substitution_lemma. exact H0. exact H2.
   - intros. simpl. eapply r_wfTermConv. exact H. assumption.
 
   (* -ConvTypeDecl*)
@@ -189,8 +188,8 @@ Proof.
     eapply r_substitution_lemma. apply r_wftype_typing_inv in H0. destruct H0. simpl in r0. exact r0. exact H1.
   - intros. simpl. apply r_TermPiCong.  simpl in H; exact H.  simpl in H0; exact H0. simpl in H1; exact H1.
   - intros. simpl. eapply r_ConvConv. apply r_TermAppCong; assumption. rewrite <- defeq_erase_subst_ty. apply r_TypeRefl.
-    eapply r_substitution_lemma. apply r_type_defeq_inv in H0. destruct H0 as [? []].
-    simpl in r0. exact r0. apply r_typing_defeq_inv in H2. destruct H2 as [? []]. auto. 
+    eapply r_substitution_lemma. apply r_type_defeq_inv in H1. destruct H1 as [? []].
+    simpl in r0. exact r0. apply r_typing_defeq_inv in H3. destruct H3 as [? []]. auto.
   - intros. simpl. apply r_TermLambdaCong; assumption. 
   - intros. simpl. destruct (Nat.eq_dec p n) as [H_eq | H_neq].
     + subst. apply r_TermPiCong. auto. apply r_TermRefl. auto. apply r_TermRefl. auto.
